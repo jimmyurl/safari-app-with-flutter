@@ -60,7 +60,7 @@ Tanzania Safari is a Flutter-based mobile application that provides users with a
   ```bash
   flutter run
   ```
-![Alt text]()
+![Alt text](https://github.com/jimmyurl/safari-app-with-flutter/blob/main/homepage.jpg)
 ## Customization
 
 - **Theme**: Modify the app's theme by editing the `ThemeData` in `MyApp` class in `main.dart`.
