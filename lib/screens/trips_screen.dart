@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:tanzaniasafari/screens/adventure_details_screen.dart';
-import 'package:tanzaniasafari/models/adventure_model.dart';
-import 'package:appwrite/appwrite.dart';
-import 'package:tanzaniasafari/services/appwrite_services.dart';
+import 'package:tanzaniasafari/models/adventure_model.dart'; // Import the correct Adventure class
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class TripsScreen extends StatefulWidget {
-  //final Client client; // Add the client parameter
   const TripsScreen({Key? key}) : super(key: key);
+
   static const routeName = '/trips';
 
   @override
@@ -15,106 +14,116 @@ class TripsScreen extends StatefulWidget {
 }
 
 class _TripsScreenState extends State<TripsScreen> {
-  String searchText = '';
   bool _isSearchVisible = false;
-
-  final List<Adventure> _adventures = const Adventure(
-    id: '1',
-    title: 'Sample Adventure',
-    description: 'This is a sample adventure.',
-    imageUrls: ['https://example.com/image.jpg'],
-    price: 0.0,
-    rating: 0.0,
-    morePicturesUrls: [],
-    location: '',
-    phoneNumbers: [],
-    latitude: 0.0,
-    longitude: 0.0,
-  ).getAdventures();
-  final List<Adventure> _culturalExperiences = const Adventure(
-    id: '1',
-    title: 'Sample Adventure',
-    description: 'This is a sample adventure.',
-    imageUrls: ['https://example.com/image.jpg'],
-    price: 0.0,
-    rating: 0.0,
-    morePicturesUrls: [],
-    location: '',
-    phoneNumbers: [],
-    latitude: 0.0,
-    longitude: 0.0,
-  ).getCulturalExperiences();
-  final List<Adventure> _sightseeing = const Adventure(
-    id: '1',
-    title: 'Sample Adventure',
-    description: 'This is a sample adventure.',
-    imageUrls: ['https://example.com/image.jpg'],
-    price: 0.0,
-    rating: 0.0,
-    morePicturesUrls: [],
-    phoneNumbers: [],
-    location: '',
-    latitude: 0.0,
-    longitude: 0.0,
-  ).getSightseeing();
+  List<Adventure> _adventures = [];
   List<Adventure> _filteredAdventures = [];
+  List<Adventure> _culturalExperiences = [];
   List<Adventure> _filteredCulturalExperiences = [];
+  List<Adventure> _sightseeing = [];
   List<Adventure> _filteredSightseeing = [];
+
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    _filteredAdventures = _adventures;
-    _filteredCulturalExperiences = _culturalExperiences;
-    _filteredSightseeing = _sightseeing;
+    _fetchAdventures();
+    _fetchCulturalExperiences();
+    _fetchSightseeing();
+  }
+
+  Future<void> _fetchAdventures() async {
+    final client = Supabase.instance.client;
+    try {
+      final data = await client.from('adventures').select();
+      if (data != null) {
+        setState(() {
+          _adventures = (data as List<dynamic>)
+              .map((json) => Adventure.fromMap(json as Map<String, dynamic>))
+              .toList();
+          _filteredAdventures = _adventures;
+        });
+      } else {
+        _showErrorSnackBar('No adventures found.');
+      }
+    } catch (error) {
+      _showErrorSnackBar('Failed to load adventures: $error');
+    }
+  }
+
+  Future<void> _fetchCulturalExperiences() async {
+    final client = Supabase.instance.client;
+    try {
+      final data = await client.from('cultural_experiences').select();
+      if (data != null) {
+        setState(() {
+          _culturalExperiences = (data as List<dynamic>)
+              .map((json) => Adventure.fromMap(json as Map<String, dynamic>))
+              .toList();
+          _filteredCulturalExperiences = _culturalExperiences;
+        });
+      } else {
+        _showErrorSnackBar('No cultural experiences found.');
+      }
+    } catch (error) {
+      _showErrorSnackBar('Failed to load cultural experiences: $error');
+    }
+  }
+
+  Future<void> _fetchSightseeing() async {
+    final client = Supabase.instance.client;
+    try {
+      final data = await client.from('sightseeing').select();
+      if (data != null) {
+        setState(() {
+          _sightseeing = (data as List<dynamic>)
+              .map((json) => Adventure.fromMap(json as Map<String, dynamic>))
+              .toList();
+          _filteredSightseeing = _sightseeing;
+        });
+      } else {
+        _showErrorSnackBar('No sightseeing data found.');
+      }
+    } catch (error) {
+      _showErrorSnackBar('Failed to load sightseeing data: $error');
+    }
   }
 
   void _filterAdventures(String searchText) {
     setState(() {
+      searchText = searchText.trim().toLowerCase();
       if (searchText.isEmpty) {
         _filteredAdventures = _adventures;
         _filteredCulturalExperiences = _culturalExperiences;
         _filteredSightseeing = _sightseeing;
       } else {
-        searchText = searchText.trim(); // Trim the search text
         _filteredAdventures = _adventures
             .where((adventure) =>
-                adventure.title
-                    .toLowerCase()
-                    .contains(searchText.toLowerCase()) ||
-                adventure.location
-                    .toLowerCase()
-                    .contains(searchText.toLowerCase()))
+                adventure.title.toLowerCase().contains(searchText) ||
+                adventure.location.toLowerCase().contains(searchText))
             .toList();
 
         _filteredCulturalExperiences = _culturalExperiences
-            .where((adventure) =>
-                adventure.title
-                    .toLowerCase()
-                    .contains(searchText.toLowerCase()) ||
-                adventure.location
-                    .toLowerCase()
-                    .contains(searchText.toLowerCase()))
+            .where((experience) =>
+                experience.title.toLowerCase().contains(searchText) ||
+                experience.location.toLowerCase().contains(searchText))
             .toList();
 
         _filteredSightseeing = _sightseeing
-            .where((adventure) =>
-                adventure.title
-                    .toLowerCase()
-                    .contains(searchText.toLowerCase()) ||
-                adventure.location
-                    .toLowerCase()
-                    .contains(searchText.toLowerCase()))
+            .where((sight) =>
+                sight.title.toLowerCase().contains(searchText) ||
+                sight.location.toLowerCase().contains(searchText))
             .toList();
       }
+      _scrollController.animateTo(0,
+          duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     });
+  }
 
-    _scrollController.animateTo(
-      0,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
     );
   }
 
@@ -122,8 +131,7 @@ class _TripsScreenState extends State<TripsScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => AdventureDetailsScreen(adventure: adventure),
-      ),
+          builder: (context) => AdventureDetailsScreen(adventure: adventure)),
     );
   }
 
@@ -135,23 +143,11 @@ class _TripsScreenState extends State<TripsScreen> {
         _filterAdventures('');
       }
     });
-
-    if (!_isSearchVisible) {
-      // Scroll to the top of the page
-      _scrollController.animateTo(
-        0,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
   }
 
   void _scrollToTop() {
-    _scrollController.animateTo(
-      0,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-    );
+    _scrollController.animateTo(0,
+        duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
   }
 
   @override
@@ -162,10 +158,9 @@ class _TripsScreenState extends State<TripsScreen> {
         title: const Text(
           'Karibu Tanzania',
           style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Color.fromARGB(255, 71, 62, 62),
-          ),
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Color.fromARGB(255, 71, 62, 62)),
         ),
       ),
       body: SingleChildScrollView(
@@ -181,12 +176,10 @@ class _TripsScreenState extends State<TripsScreen> {
                       child: TextField(
                         controller: _searchController,
                         decoration: const InputDecoration(
-                          labelText: 'Search by title or location',
-                        ),
+                            labelText: 'Search by title or location'),
                         onChanged: (value) {
                           _filterAdventures(value);
                         },
-                        textDirection: TextDirection.ltr,
                       ),
                     ),
                     IconButton(
@@ -210,10 +203,8 @@ class _TripsScreenState extends State<TripsScreen> {
               ),
             if (_isSearchVisible) const SizedBox(height: 16),
             _buildCarouselGrid(_filteredAdventures, 'Adventures'),
-            if (_isSearchVisible) const SizedBox(height: 16),
             _buildCarouselGrid(
                 _filteredCulturalExperiences, 'Cultural Experiences'),
-            if (_isSearchVisible) const SizedBox(height: 16),
             _buildCarouselGrid(_filteredSightseeing, 'Sightseeing'),
           ],
         ),
@@ -223,7 +214,6 @@ class _TripsScreenState extends State<TripsScreen> {
         child: FloatingActionButton(
           onPressed: () {
             _toggleSearchVisibility();
-            // Scroll to top when FAB is pressed
             _scrollToTop();
           },
           child: const Icon(Icons.search),
@@ -233,7 +223,7 @@ class _TripsScreenState extends State<TripsScreen> {
     );
   }
 
-  Widget _buildCarouselGrid(List<Adventure> adventures, String categoryTitle) {
+  Widget _buildCarouselGrid(List<Adventure> items, String categoryTitle) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -241,97 +231,99 @@ class _TripsScreenState extends State<TripsScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
             categoryTitle,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
         ),
         const SizedBox(height: 8.0),
-        CarouselSlider(
-          options: CarouselOptions(
-            height: 250,
-            enlargeCenterPage: true,
-          ),
-          items: adventures.map((adventure) {
-            return Builder(
-              builder: (BuildContext context) {
-                return GestureDetector(
-                  onTap: () {
-                    _navigateToAdventureDetails(adventure);
-                  },
-                  child: Card(
-                    elevation: 4.0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    child: SingleChildScrollView(
+        SizedBox(
+          height: 250,
+          child: CarouselSlider(
+            options: CarouselOptions(
+              height: 250,
+              enlargeCenterPage: true,
+              aspectRatio: 16 / 9,
+              viewportFraction: 0.9,
+            ),
+            items: items.map((item) {
+              return Builder(
+                builder: (BuildContext context) {
+                  return GestureDetector(
+                    onTap: () => _navigateToAdventureDetails(item),
+                    child: Card(
+                      elevation: 4.0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           SizedBox(
-                            height: 150, // Set a fixed height for the image
+                            height: 150,
                             child: ClipRRect(
                               borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(8.0),
-                              ),
-                              child: Image.network(
-                                adventure.imageUrls.first,
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                              ),
+                                  top: Radius.circular(8.0)),
+                              child: item.imageUrls != null &&
+                                      item.imageUrls.isNotEmpty
+                                  ? Image.network(
+                                      item.imageUrls.first,
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                        return Container(
+                                          color: Colors.grey,
+                                          child: const Center(
+                                            child: Text(
+                                              'Failed to load image',
+                                              style: TextStyle(
+                                                  color: Colors.white),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    )
+                                  : Container(
+                                      color: Colors.grey,
+                                      child: const Center(
+                                        child: Text(
+                                          'No Image Available',
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
                             ),
                           ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  adventure.title,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Row(
-                                  children: [
-                                    const Icon(Icons.location_on, size: 16),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      adventure.location,
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Row(
-                                  children: [
-                                    const Icon(Icons.phone, size: 16),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      adventure.phoneNumbers.join(", "),
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                            child: Text(
+                              item.title,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: Text(
+                              item.location,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey,
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                );
-              },
-            );
-          }).toList(),
+                  );
+                },
+              );
+            }).toList(),
+          ),
         ),
+        const SizedBox(height: 16.0),
       ],
     );
   }

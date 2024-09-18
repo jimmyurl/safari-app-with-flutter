@@ -3,11 +3,9 @@ import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:tanzaniasafari/models/hotel_model.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:appwrite/appwrite.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class HotelsScreen extends StatefulWidget {
-  // final Client client; // Add the client parameter
-
   const HotelsScreen({Key? key}) : super(key: key);
 
   static const routeName = '/hotels';
@@ -17,24 +15,52 @@ class HotelsScreen extends StatefulWidget {
 }
 
 class _HotelsScreenState extends State<HotelsScreen> {
+  final SupabaseClient _supabase = Supabase.instance.client;
   String searchText = '';
   bool _isSearchVisible = false;
-
-  List<Hotel> getNorthernCircuitHotels() {
-    return Hotel.hotels
-        .where((hotel) => hotel.zone.toLowerCase() == 'north')
-        .toList();
-  }
-
-  List<Hotel> getSouthernCircuitHotels() {
-    return Hotel.hotels
-        .where((hotel) => hotel.zone.toLowerCase() == 'south')
-        .toList();
-  }
+  List<Hotel> _northernCircuitHotels = [];
+  List<Hotel> _southernCircuitHotels = [];
 
   @override
   void initState() {
     super.initState();
+    _fetchHotels();
+  }
+
+  Future<void> _fetchHotels() async {
+    final client = Supabase.instance.client;
+
+    try {
+      // Fetch data from the 'hotels' table
+      final response = await client
+          .from('hotels')
+          .select(); // Directly fetch hotels without execute()
+
+      // Check if the response is not empty
+      if (response.isNotEmpty) {
+        // Safely cast the response data to a List
+        List<dynamic> data = response as List<dynamic>;
+
+        // Update state with filtered hotels
+        setState(() {
+          _northernCircuitHotels = data
+              .where((hotel) => hotel['zone'].toLowerCase() == 'north')
+              .map((json) => Hotel.fromJson(json))
+              .toList();
+
+          _southernCircuitHotels = data
+              .where((hotel) => hotel['zone'].toLowerCase() == 'south')
+              .map((json) => Hotel.fromJson(json))
+              .toList();
+        });
+      } else {
+        // Handle case where no hotels are found
+        print('No hotels found.');
+      }
+    } catch (err) {
+      // Handle any errors that occur during the fetch
+      print('Error fetching hotels: ${err.toString()}');
+    }
   }
 
   void _filterHotels(String searchText) {
@@ -68,9 +94,6 @@ class _HotelsScreenState extends State<HotelsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    List<Hotel> northernCircuitHotels = getNorthernCircuitHotels();
-    List<Hotel> southernCircuitHotels = getSouthernCircuitHotels();
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFFF5EDDC),
@@ -109,8 +132,8 @@ class _HotelsScreenState extends State<HotelsScreen> {
                       ),
                     ),
                     controller: TextEditingController(text: searchText),
-                    textInputAction: TextInputAction.search, // Added line
-                    textAlign: TextAlign.left, // Added line
+                    textInputAction: TextInputAction.search,
+                    textAlign: TextAlign.left,
                     onChanged: (value) {
                       setState(() {
                         searchText = value;
@@ -118,7 +141,7 @@ class _HotelsScreenState extends State<HotelsScreen> {
                     },
                   ),
                   suggestionsCallback: (pattern) {
-                    return Hotel.hotels
+                    return _northernCircuitHotels
                         .where((hotel) =>
                             hotel.title
                                 .toLowerCase()
@@ -151,10 +174,10 @@ class _HotelsScreenState extends State<HotelsScreen> {
                   ),
                 if (_isSearchVisible) const SizedBox(height: 16),
                 _buildCarouselGrid(
-                    northernCircuitHotels, 'Northern Circuit', context),
+                    _northernCircuitHotels, 'Northern Circuit', context),
                 const SizedBox(height: 16),
                 _buildCarouselGrid(
-                    southernCircuitHotels, 'Southern Circuit', context),
+                    _southernCircuitHotels, 'Southern Circuit', context),
               ],
             ),
           ),
@@ -398,36 +421,72 @@ class HotelDetailsScreen extends StatelessWidget {
   }
 }
 
-Future<void> _launchPhoneCall(String phoneNumber) async {
-  final url = 'tel:$phoneNumber';
-  if (await canLaunch(url)) {
-    await launch(url);
+class Hotel {
+  final String title;
+  final String location;
+  final String description;
+  final List<String> imageUrls;
+  final List<String> amenities;
+  final List<String> phoneNumbers;
+  final double latitude;
+  final double longitude;
+  final String zone;
+  final double rating;
+
+  Hotel({
+    required this.title,
+    required this.location,
+    required this.description,
+    required this.imageUrls,
+    required this.amenities,
+    required this.phoneNumbers,
+    required this.latitude,
+    required this.longitude,
+    required this.zone,
+    required this.rating,
+  });
+
+  factory Hotel.fromJson(Map<String, dynamic> json) {
+    return Hotel(
+      title: json['title'],
+      location: json['location'],
+      description: json['description'],
+      imageUrls: List<String>.from(json['image_urls']),
+      amenities: List<String>.from(json['amenities']),
+      phoneNumbers: List<String>.from(json['phone_numbers']),
+      latitude: json['latitude'],
+      longitude: json['longitude'],
+      zone: json['zone'],
+      rating: json['rating'],
+    );
+  }
+}
+
+Future<void> _launchPhoneCall(String number) async {
+  final Uri url = Uri(
+    scheme: 'tel',
+    path: number,
+  );
+  if (await canLaunchUrl(url)) {
+    await launchUrl(url);
   } else {
-    throw 'Could not launch $url';
+    throw 'Could not launch $number';
   }
 }
 
 IconData getAmenityIcon(String amenity) {
   switch (amenity.toLowerCase()) {
-    case 'wifi in lobby':
-    case 'wifi in rooms':
+    case 'wifi':
       return Icons.wifi;
     case 'pool':
       return Icons.pool;
-    case 'spa':
-      return Icons.spa;
-    case 'parking':
-      return Icons.local_parking;
+    case 'restaurant':
+      return Icons.restaurant;
+    case 'gym':
+      return Icons.fitness_center;
     default:
-      return Icons.info;
+      return Icons.help;
   }
-}
-
-class LocationOption {
-  final String id;
-  final String name;
-
-  LocationOption(this.id, this.name);
 }
 
 class HotelCard extends StatelessWidget {
@@ -438,52 +497,20 @@ class HotelCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 4.0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            AspectRatio(
-              aspectRatio: 16 / 9, // Set the desired aspect ratio here
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(8.0),
-                ),
-                child: Image.network(
-                  hotel.imageUrls.isNotEmpty ? hotel.imageUrls[0] : '',
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    hotel.title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4.0),
-                  Text(hotel.location),
-                  const SizedBox(height: 4.0),
-                  Text(
-                    '${hotel.rating} stars',
-                    style: const TextStyle(
-                      color: Colors.amber,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+      child: Column(
+        children: [
+          // Assuming each hotel has a cover image URL
+          Image.network(
+            hotel.imageUrls.isNotEmpty ? hotel.imageUrls[0] : '',
+            fit: BoxFit.cover,
+            height: 150,
+            width: double.infinity,
+          ),
+          ListTile(
+            title: Text(hotel.title),
+            subtitle: Text(hotel.location),
+          ),
+        ],
       ),
     );
   }

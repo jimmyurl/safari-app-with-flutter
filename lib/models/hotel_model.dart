@@ -1,12 +1,9 @@
-
 class Hotel {
   final String id;
   final String title;
   final String description;
   final List<String> imageUrls;
-  final double price;
   final double rating;
-  final List<String> morePicturesUrls;
   final String location;
   final String zone;
   final String hotelClass;
@@ -20,9 +17,7 @@ class Hotel {
     required this.title,
     required this.description,
     required this.imageUrls,
-    required this.price,
     required this.rating,
-    required this.morePicturesUrls,
     required this.location,
     required this.zone,
     required this.hotelClass,
@@ -60,13 +55,8 @@ class Hotel {
         'https://cache.marriott.com/content/dam/marriott-renditions/JROFP/jrofp-parachichi-3398-hor-clsc.jpg?output-quality=70&interpolation=progressive-bilinear&downsize=1215px:*',
         'https://cache.marriott.com/content/dam/marriott-renditions/JROFP/jrofp-hatari-bar-3397-hor-clsc.jpg?output-quality=70&interpolation=progressive-bilinear&downsize=1215px:*',
       ],
-      morePicturesUrls: [
-        'https://images.pexels.com/photos/789630/pexels-photo-789630.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-        'https://images.pexels.com/photos/7280783/pexels-photo-7280783.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'
-      ],
       location: 'Arusha',
       zone: 'North',
-      price: 650,
       rating: 5,
       hotelClass: '5 Stars',
       amenities: [
@@ -93,13 +83,8 @@ class Hotel {
         'https://image-tc.galaxy.tf/wijpeg-3qnun5drf3nozvjmbu9yxytbw/guest-shop.jpg',
         'https://image-tc.galaxy.tf/wijpeg-boqt20abzq7m2oc775849c2vl/lakedulutiserena-239.jpg',
       ],
-      morePicturesUrls: [
-        'https://images.pexels.com/photos/15821364/pexels-photo-15821364/free-photo-of-lion-on-savannah.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-        'https://images.pexels.com/photos/12004890/pexels-photo-12004890.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'
-      ],
       location: 'Arusha',
       zone: 'North',
-      price: 450,
       rating: 4,
       hotelClass: '4 Stars',
       amenities: [
@@ -124,13 +109,8 @@ class Hotel {
         'https://shambalodgearusha.com/wp-content/uploads/2020/11/vabin-new.jpg',
         'https://shambalodgearusha.com/wp-content/uploads/2020/12/OGS0768-HDR-scaled.jpg',
       ],
-      morePicturesUrls: [
-        'https://images.pexels.com/photos/59840/elephant-baby-safari-elephants-africa-59840.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-        'https://images.pexels.com/photos/10740862/pexels-photo-10740862.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1'
-      ],
       location: 'Arusha',
       zone: 'North',
-      price: 150,
       rating: 3,
       hotelClass: '1 Star',
       amenities: ['WiFi in Rooms', 'Pool', 'Parking'],
@@ -149,13 +129,8 @@ class Hotel {
         'https://dam.melia.com/melia/accounts/f8/4000018/projects/127/assets/10/13535/77150a76873e476f203c58388c5dde41-1595540183.jpg?im=RegionOfInterestCrop=(1600,1092),regionOfInterest=(1476.5,1007.5)',
         'https://dam.melia.com/melia/accounts/f8/4000018/projects/127/assets/f2/13542/b8f914299c57ef846201616fb371e080-1595540220.jpg?im=RegionOfInterestCrop=(1600,1068),regionOfInterest=(1476.5,984.5)',
       ],
-      morePicturesUrls: [
-        'https://images.pexels.com/photos/6056774/pexels-photo-6056774.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-        'https://images.pexels.com/photos/6056772/pexels-photo-6056772.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-      ],
       location: 'Arusha',
       zone: 'North',
-      price: 750,
       rating: 5,
       hotelClass: '5 Stars',
       amenities: ['wifi in lobby', 'WiFi in Rooms', 'Pool', 'Spa', 'Parking'],
@@ -173,13 +148,8 @@ class Hotel {
         'https://villamaua.co.tz/wp-content/uploads/2019/09/villa_maua_spaces_P8O9289-cut.jpg',
         'https://villamaua.co.tz/wp-content/uploads/2019/09/villa_maua_location_P8O8797.jpg',
       ],
-      morePicturesUrls: [
-        'https://images.pexels.com/photos/14721501/pexels-photo-14721501.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-        'https://images.pexels.com/photos/6476604/pexels-photo-6476604.jpeg?auto=compress&cs=tinysrgb&w=600',
-      ],
       location: 'Arusha',
       zone: 'North',
-      price: 150,
       rating: 5,
       hotelClass: '2 Stars',
       amenities: ['WiFi in Rooms', 'Pool', 'Parking'],
@@ -197,13 +167,8 @@ class Hotel {
         'https://images.trvl-media.com/lodging/47000000/46930000/46921500/46921410/9941b4c2.jpg?impolicy=resizecrop&rw=1200&ra=fit',
         'https://images.trvl-media.com/lodging/47000000/46930000/46921500/46921410/633859db.jpg?impolicy=resizecrop&rw=1200&ra=fit',
       ],
-      morePicturesUrls: [
-        'https://images.pexels.com/photos/14089446/pexels-photo-14089446.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-        'https://images.pexels.com/photos/15882073/pexels-photo-15882073/free-photo-of-hot-air-ballon.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-      ],
       location: 'Arusha',
       zone: 'North',
-      price: 50,
       rating: 5,
       hotelClass: '2 Stars',
       amenities: ['WiFi in Rooms', 'Pool', 'Spa', 'Parking'],
@@ -221,13 +186,8 @@ class Hotel {
         'https://images.trvl-media.com/lodging/93000000/92260000/92252700/92252645/63dce52b.jpg?impolicy=resizecrop&rw=1200&ra=fit',
         'https://images.trvl-media.com/lodging/93000000/92260000/92252700/92252645/26e52263.jpg?impolicy=resizecrop&rw=1200&ra=fit',
       ],
-      morePicturesUrls: [
-        'https://images.pexels.com/photos/16064257/pexels-photo-16064257/free-photo-of-bush-animal-grass-park.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-        'https://images.pexels.com/photos/15994048/pexels-photo-15994048/free-photo-of-wood-animal-park-tree.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-      ],
       location: 'Arusha',
       zone: 'North',
-      price: 30,
       rating: 5,
       hotelClass: '1 Star',
       amenities: ['WiFi in Rooms', 'Spa', 'Parking'],
@@ -247,11 +207,6 @@ class Hotel {
       ],
       location: 'Arusha',
       zone: 'North',
-      morePicturesUrls: [
-        'https://images.pexels.com/photos/15821221/pexels-photo-15821221/free-photo-of-leopard-on-tree.jpeg?auto=compress&cs=tinysrgb&w=600',
-        'https://images.pexels.com/photos/15994045/pexels-photo-15994045/free-photo-of-dawn-sunset-animal-grass.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-      ],
-      price: 750,
       rating: 5,
       hotelClass: '5 Stars',
       amenities: ['WiFi in Rooms', 'Pool', 'Parking'],
@@ -273,11 +228,6 @@ class Hotel {
       ],
       location: 'Mara',
       zone: 'North',
-      morePicturesUrls: [
-        'https://images.pexels.com/photos/15821221/pexels-photo-15821221/free-photo-of-leopard-on-tree.jpeg?auto=compress&cs=tinysrgb&w=600',
-        'https://images.pexels.com/photos/15994045/pexels-photo-15994045/free-photo-of-dawn-sunset-animal-grass.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-      ],
-      price: 750,
       rating: 5,
       hotelClass: '5 Stars',
       amenities: ['WiFi in Rooms', 'Pool', 'Spa', 'Parking', 'WiFi in Lobby'],
@@ -295,14 +245,6 @@ class Hotel {
       ],
       location: 'Kiwengwa-Zanzibar',
       zone: 'South',
-      morePicturesUrls: [
-        'https://img.directbooking.ro/getimage.ashx?w=880&h=660&file=010a8d5c-2fe3-4cfb-8f7e-2744d9f9c734.jpg',
-        'https://cf.bstatic.com/xdata/images/hotel/max1024x768/14750461.jpg?k=cb1abf0814660cd98baa7149ca892c3ab17c2707900e4a42fd5319d5ba3fe055&o=&hp=1',
-        'https://dam.melia.com/melia/accounts/f8/4000018/projects/127/assets/b6/89452/1322372d57509629d052aa771be94ed9-1647432792.jpg?im=RegionOfInterestCrop=(360,240),regionOfInterest=(1476.5,984.5)',
-        'https://www.architectrussell.com/wp-content/uploads/2022/03/IMG_7022.jpg',
-        'https://dam.melia.com/melia/accounts/f8/4000018/projects/127/assets/12/45303/da62dc9f316b50213660d4cda15d0093-1604084318.jpg?fp=1476.5,985.5&width=2000&height=1335',
-      ],
-      price: 750,
       rating: 5,
       hotelClass: '5 Stars',
       amenities: ['WiFi in Rooms', 'Pool', 'Spa', 'Parking', 'WiFi in Lobby'],
@@ -324,11 +266,6 @@ class Hotel {
       ],
       location: 'Shungimbili Island,Mafia Island.',
       zone: 'South',
-      morePicturesUrls: [
-        'https://images.pexels.com/photos/15821221/pexels-photo-15821221/free-photo-of-leopard-on-tree.jpeg?auto=compress&cs=tinysrgb&w=600',
-        'https://images.pexels.com/photos/15994045/pexels-photo-15994045/free-photo-of-dawn-sunset-animal-grass.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-      ],
-      price: 750,
       rating: 3,
       hotelClass: '5 Stars',
       amenities: ['WiFi in Rooms', 'Pool', 'Spa'],
@@ -346,13 +283,6 @@ class Hotel {
       ],
       location: 'Pwani-Zanzibar',
       zone: 'South',
-      morePicturesUrls: [
-        'https://imga.invia-travel.de/images/media5/19122/1877140_8_19122_800_600_171987_VAId345Seq15IMG61300f9402e223a3dae4962fc9897d64_xl.jpeg',
-        'https://img.directbooking.ro/getimage.ashx?w=880&h=660&file=0a805aee-058f-4d69-bdbc-e411d898b77a.jpg',
-        'https://cf.bstatic.com/xdata/images/hotel/max1024x768/74586128.jpg?k=351924624ad85a6bcc4e501d6b76626a89a66e1f900c795222fce377949855e6&o=&hp=1',
-        'https://anpeiorzlo.cloudimg.io/v7/storage.googleapis.com/images_trvl-portfolio-prod/vaknl_legacy/10796/10537817.webp',
-      ],
-      price: 750,
       rating: 5,
       hotelClass: '5 Stars',
       amenities: ['WiFi in Rooms', 'Pool', 'Spa', 'Parking', 'WiFi in Lobby'],
@@ -370,14 +300,6 @@ class Hotel {
       ],
       location: 'Kiwengwa Road-Zanzibar',
       zone: 'South',
-      morePicturesUrls: [
-        'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/10/d2/66/05/ocean-paradise-resort.jpg?w=700&h=-1&s=1',
-        'https://cdn-prd.sonnenklar.tv/img/g/800/600/22776/i21_70670784.jpg',
-        'https://media-cdn.tripadvisor.com/media/photo-s/10/d2/65/b8/ocean-paradise-resort.jpg',
-        'https://cf.bstatic.com/xdata/images/hotel/max1024x768/32495786.jpg?k=d0c93128e2707abd37ce9e1492057276ab4b8c4e52d70b3713be7a1278187e56&o=&hp=1',
-        'https://cf.bstatic.com/xdata/images/hotel/max1024x768/251521915.jpg?k=99465dfdf125cae71882df350263429ac5749ff787547635ecda15c07d4c7166&o=&hp=1',
-      ],
-      price: 750,
       rating: 5,
       hotelClass: '5 Stars',
       amenities: ['WiFi in Rooms', 'Pool', 'Spa', 'Parking', 'WiFi in Lobby'],
@@ -395,14 +317,6 @@ class Hotel {
       ],
       location: 'Kiwengwa Road-Zanzibar',
       zone: 'South',
-      morePicturesUrls: [
-        'https://q-xx.bstatic.com/xdata/images/hotel/max500/415241873.jpg?k=f2a3a9aafb1ff177edadd91f6ed514f3614a1e2f01059a6aa26cc84d7665d468&o=&isSkia=true',
-        'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/27/37/45/b8/emerald-zanzibar-resort.jpg?w=700&h=-1&s=1',
-        'https://cf.bstatic.com/xdata/images/hotel/max1024x768/415239161.jpg?k=336fd5be29c2e7aff0e655f8d7cbf545425c8470dd4959840aeab5c4299db90d&o=&hp=1',
-        'https://cf.bstatic.com/xdata/images/hotel/max1024x768/415238989.jpg?k=64e2309c362723422a8bb58268e67c27499f7b1dd39b0c0466a9ee0168845aba&o=&hp=1',
-        'https://cdn.kiwicollection.com/media/property/PR241121/l/241121-28-Beach%20Bar%20and%20Living07-Emerald%20Zanzibar.jpg?cb=1671828285',
-      ],
-      price: 750,
       rating: 5,
       hotelClass: '5 Stars',
       amenities: ['WiFi in Rooms', 'Pool', 'Spa', 'Parking', 'WiFi in Lobby'],
@@ -420,13 +334,6 @@ class Hotel {
       ],
       location: 'Pemba Island',
       zone: 'South',
-      morePicturesUrls: [
-        'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/29/09/5c/c3/constance-aiyana-pemba.jpg?w=700&h=-1&s=1',
-        'https://waybird.imgix.net/lodges/kodak_images/000/004/003/original/the-aiyana-resort-pemba-tanzania-timbuktu-travel.JPG?w=1420&h=946&crop=center%20center&fit=min&dpr=1&q=50&auto=format',
-        'https://www.kayak.com/rimg/himg/14/47/16/expediav2-10039225-727f42f8_z-643340.jpg?width=1366&height=768&crop=true',
-        'https://blackplatinumgold.com/wp-content/uploads/2020/11/23-10.jpg',
-      ],
-      price: 750,
       rating: 5,
       hotelClass: '5 Stars',
       amenities: ['WiFi in Rooms', 'Pool', 'Spa', 'Parking', 'WiFi in Lobby'],

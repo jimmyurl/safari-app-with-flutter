@@ -30,7 +30,9 @@ dependencies:
   dart_appwrite: ^8.0.1
   file_picker: ^5.0.1
   window_location_href: ^1.0.1+2
-  material_floating_search_bar_2: ^0.5.0 
+  material_floating_search_bar_2: ^0.5.0
+  google_fonts: ^4.0.4
+  image_picker: ^1.1.2 
      
 
 dev_dependencies:
@@ -51,5 +53,3 @@ flutter:
     - family: WorkSans-VariableFont_wght
       fonts:
         - asset: assets/fonts/WorkSans-VariableFont_wght.ttf
-
-
