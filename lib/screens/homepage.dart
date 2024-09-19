@@ -29,7 +29,6 @@ class _HomePageState extends State<HomePage> {
     if (_image != null && _uploadDirectory != null) {
       final user = supabase.auth.currentUser;
       if (user == null) {
-        // If the user somehow is not logged in, show an error
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('You must be logged in to upload an image'),
@@ -43,33 +42,21 @@ class _HomePageState extends State<HomePage> {
       final filePath = '$_uploadDirectory/$fileName';
 
       try {
-        // Convert XFile to File
         final file = File(_image!.path);
-
-        final storageResponse = await supabase.storage
-            .from('your-bucket-name') // Replace with your actual bucket name
+        await supabase.storage
+            .from('images') // Your Supabase bucket name
             .upload(filePath, file);
 
-        if (storageResponse.error == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Image uploaded to $filePath'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                  'Failed to upload image: ${storageResponse.error!.message}'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Image uploaded to $filePath'),
+            backgroundColor: Colors.green,
+          ),
+        );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error occurred: $e'),
+            content: Text('Failed to upload image: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -88,48 +75,59 @@ class _HomePageState extends State<HomePage> {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    if (_isLogin) {
-      final response = await supabase.auth.signInWithPassword(
-        email: email,
-        password: password,
-      );
+    try {
+      if (_isLogin) {
+        final response = await supabase.auth.signInWithPassword(
+          email: email,
+          password: password,
+        );
 
-      if (response.user != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Successfully logged in'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        if (response.user != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Successfully logged in'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          // Navigate to the home page or perform further actions here
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Login failed'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Login failed: ${response.error?.message}'),
-            backgroundColor: Colors.red,
-          ),
+        final response = await supabase.auth.signUp(
+          email: email,
+          password: password,
         );
-      }
-    } else {
-      final response = await supabase.auth.signUp(
-        email: email,
-        password: password,
-      );
 
-      if (response.user != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Successfully signed up'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Sign up failed: ${response.error?.message}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        if (response.user != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Successfully signed up'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          // Navigate to the home page or perform further actions here
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Sign up failed'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('An unexpected error occurred: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
