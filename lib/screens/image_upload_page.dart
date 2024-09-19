@@ -12,7 +12,7 @@ class _ImageUploadPageState extends State<ImageUploadPage> {
   final SupabaseClient supabase = Supabase.instance.client;
   final ImagePicker _picker = ImagePicker();
   XFile? _image;
-  String? _uploadDirectory;
+  String? _uploadDirectory = 'popular_destinations'; // Set a default directory
   String? _uploadUrl;
 
   Future<void> _selectImage() async {

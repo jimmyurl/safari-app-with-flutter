@@ -1,292 +1,369 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:tanzaniasafari/models/hotel_model.dart' as hotelModel;
+import 'package:tanzaniasafari/screens/HotelsDestination.dart'
+    as destinationScreen;
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tanzaniasafari/screens/zoo_page.dart';
+import 'package:tanzaniasafari/screens/reserves_page.dart';
+import 'package:tanzaniasafari/screens/parks_page.dart';
+import 'package:tanzaniasafari/screens/waterfall_page.dart';
+import 'package:tanzaniasafari/screens/mountains_page.dart';
 
 class HomePage extends StatefulWidget {
+  const HomePage({Key? key}) : super(key: key);
+
   @override
   _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  final SupabaseClient supabase = Supabase.instance.client;
-  final _picker = ImagePicker();
-  XFile? _image;
-  String? _uploadDirectory;
+  List<hotelModel.Hotel> popularDestinations = [];
+  final TextEditingController _destinationController = TextEditingController();
+  String selectedDestination = '';
+  bool isLoginMode = true;
 
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  bool _isLogin = true;
-
-  Future<void> _selectImage() async {
-    final pickedImage = await _picker.pickImage(source: ImageSource.gallery);
-    setState(() {
-      _image = pickedImage;
-    });
+  @override
+  void initState() {
+    super.initState();
+    _fetchPopularDestinations();
   }
 
-  Future<void> _uploadImage() async {
-    if (_image != null && _uploadDirectory != null) {
-      final user = supabase.auth.currentUser;
-      if (user == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('You must be logged in to upload an image'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
-
-      final fileName = '${user.id}_${_image!.path.split('/').last}';
-      final filePath = '$_uploadDirectory/$fileName';
-
-      try {
-        final file = File(_image!.path);
-        await supabase.storage
-            .from('images') // Your Supabase bucket name
-            .upload(filePath, file);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Image uploaded to $filePath'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to upload image: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select an image and directory.'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-    }
-  }
-
-  Future<void> _signUpOrLogin() async {
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
+  Future<void> _fetchPopularDestinations() async {
+    final client = Supabase.instance.client;
 
     try {
-      if (_isLogin) {
-        final response = await supabase.auth.signInWithPassword(
-          email: email,
-          password: password,
-        );
+      final response = await client.from('hotels').select().maybeSingle();
 
-        if (response.user != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Successfully logged in'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Login failed'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      } else {
-        final response = await supabase.auth.signUp(
-          email: email,
-          password: password,
-        );
+      if (response != null) {
+        final List<dynamic> responseData = response as List<dynamic>;
 
-        if (response.user != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Successfully signed up'),
-              backgroundColor: Colors.green,
-            ),
+        final List<hotelModel.Hotel> hotels =
+            responseData.map<hotelModel.Hotel>((json) {
+          return hotelModel.Hotel(
+            id: json['id'] as String,
+            title: json['title'] as String,
+            description: json['description'] as String,
+            imageUrls: List<String>.from(json['imageUrls'] as List),
+            rating: (json['rating'] as num).toDouble(),
+            location: json['location'] as String,
+            zone: json['zone'] as String,
+            hotelClass: json['hotelClass'] as String,
+            amenities: List<String>.from(json['amenities'] as List),
+            phoneNumbers: List<String>.from(json['phoneNumbers'] as List),
+            latitude: (json['latitude'] as num).toDouble(),
+            longitude: (json['longitude'] as num).toDouble(),
           );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Sign up failed'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
+        }).toList();
+
+        setState(() {
+          popularDestinations = hotels;
+        });
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('An unexpected error occurred: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  Future<List<String>> _fetchPopularDestinationsImages() async {
-    final List<String> imageUrls = [];
-
-    try {
-      final List<FileObject> files = await supabase.storage
-          .from('images')
-          .list(path: 'Popular Destinations');
-
-      for (var file in files) {
-        final publicUrl = supabase.storage
-            .from('images')
-            .getPublicUrl('Popular Destinations/${file.name}');
-        imageUrls.add(publicUrl);
+    } catch (err) {
+      print('Error: $err');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error fetching destinations: $err'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error fetching images: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
-    return imageUrls;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Home Page'),
-      ),
+      backgroundColor: const Color(0xFFF5EDDC),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            _buildSignUpOrLoginForm(),
-            SizedBox(height: 20),
-            _buildImageUploadSection(),
-            SizedBox(height: 20),
-            _buildPopularDestinationsCarousel(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSignUpOrLoginForm() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TextField(
-          controller: _emailController,
-          decoration: InputDecoration(labelText: 'Email'),
-        ),
-        TextField(
-          controller: _passwordController,
-          decoration: InputDecoration(labelText: 'Password'),
-          obscureText: true,
-        ),
-        SizedBox(height: 10),
-        ElevatedButton(
-          onPressed: _signUpOrLogin,
-          child: Text(_isLogin ? 'Login' : 'Sign Up'),
-        ),
-        TextButton(
-          onPressed: () {
-            setState(() {
-              _isLogin = !_isLogin;
-            });
-          },
-          child:
-              Text(_isLogin ? 'Create an account' : 'Have an account? Login'),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildImageUploadSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Select an image to upload:'),
-        SizedBox(height: 10),
-        ElevatedButton(
-          onPressed: _selectImage,
-          child: Text('Choose Image'),
-        ),
-        _image != null ? Image.file(File(_image!.path)) : Container(),
-        SizedBox(height: 10),
-        DropdownButton<String>(
-          hint: Text('Select Upload Directory'),
-          value: _uploadDirectory,
-          items: [
-            DropdownMenuItem(
-              child: Text('Popular Destinations'),
-              value: 'popular_destinations',
-            ),
-            // Add more directories as needed
-          ],
-          onChanged: (value) {
-            setState(() {
-              _uploadDirectory = value;
-            });
-          },
-        ),
-        SizedBox(height: 10),
-        ElevatedButton(
-          onPressed: _uploadImage,
-          child: Text('Upload Image'),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPopularDestinationsCarousel() {
-    return FutureBuilder<List<String>>(
-      future: _fetchPopularDestinationsImages(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Text('No images found.');
-        } else {
-          final imageUrls = snapshot.data!;
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Popular Destinations',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 10),
-              Container(
-                height: 200,
-                child: ListView.builder(
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
+              child: SizedBox(
+                height: 100,
+                child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
-                  itemCount: imageUrls.length,
-                  itemBuilder: (context, index) {
-                    final imageUrl = imageUrls[index];
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: Image.network(
-                        imageUrl,
-                        height: 150,
-                        width: 250,
-                        fit: BoxFit.cover,
-                      ),
-                    );
-                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildIconWithLabel(context, 'assets/icons/zoo.png',
+                          'Zoo', const ZooPage()),
+                      _buildSpacer(),
+                      _buildIconWithLabel(context, 'assets/icons/waterfall.png',
+                          'Waterfall', const WaterfallsPage()),
+                      _buildSpacer(),
+                      _buildIconWithLabel(context, 'assets/icons/mountain.png',
+                          'Mountains', const MountainsPage()),
+                      _buildSpacer(),
+                      _buildIconWithLabel(context, 'assets/icons/parks.png',
+                          'Parks', const ParksPage()),
+                      _buildSpacer(),
+                      _buildIconWithLabel(context, 'assets/icons/reserves.png',
+                          'Reserves', const ReservesPage()),
+                    ],
+                  ),
                 ),
               ),
-            ],
-          );
-        }
-      },
+            ),
+            const SizedBox(height: 8.0),
+            const Text(
+              'Popular Destinations',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16.0),
+            Card(
+              margin:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              elevation: 4,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(
+                    height: 200,
+                    child: CarouselSlider(
+                      options: CarouselOptions(
+                        autoPlay: true,
+                        autoPlayInterval: const Duration(seconds: 10),
+                        autoPlayAnimationDuration:
+                            const Duration(milliseconds: 800),
+                        autoPlayCurve: Curves.fastOutSlowIn,
+                        enableInfiniteScroll: true,
+                        enlargeCenterPage: true,
+                      ),
+                      items: popularDestinations.map((destination) {
+                        return Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 8),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            image: DecorationImage(
+                              image: NetworkImage(
+                                  destination.imageUrls.isNotEmpty
+                                      ? destination.imageUrls[0]
+                                      : 'https://example.com/placeholder.jpg'),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          child: Stack(
+                            children: [
+                              Positioned(
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                child: Container(
+                                  color: Colors.black.withOpacity(0.5),
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        destination.title,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Text(
+                                        destination.location,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16.0),
+            Card(
+              margin:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              elevation: 4,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Search for Attractions',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16.0),
+                    TypeAheadFormField<String>(
+                      textFieldConfiguration: TextFieldConfiguration(
+                        controller: _destinationController,
+                        decoration: const InputDecoration(
+                          hintText: 'Select Destination',
+                        ),
+                      ),
+                      suggestionsCallback: (pattern) async {
+                        return popularDestinations
+                            .where((hotel) => hotel.location
+                                .toLowerCase()
+                                .contains(pattern.toLowerCase()))
+                            .map((hotel) => hotel.location)
+                            .toList();
+                      },
+                      itemBuilder: (context, suggestion) {
+                        return ListTile(
+                          title: Text(suggestion),
+                        );
+                      },
+                      onSuggestionSelected: (suggestion) {
+                        setState(() {
+                          selectedDestination = suggestion;
+                          _destinationController.text = suggestion;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16.0),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (selectedDestination.isNotEmpty) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  destinationScreen.HotelsDestination(
+                                destination: selectedDestination,
+                              ),
+                            ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Please select a destination.'),
+                              backgroundColor: Colors.orange,
+                            ),
+                          );
+                        }
+                      },
+                      child: const Text('Search'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Card(
+              margin:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              elevation: 4,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      isLoginMode ? 'Login' : 'Sign Up',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16.0),
+                    TextField(
+                      decoration: const InputDecoration(
+                        labelText: 'Email',
+                      ),
+                    ),
+                    const SizedBox(height: 8.0),
+                    TextField(
+                      decoration: const InputDecoration(
+                        labelText: 'Password',
+                      ),
+                      obscureText: true,
+                    ),
+                    if (!isLoginMode) const SizedBox(height: 8.0),
+                    TextField(
+                      decoration: const InputDecoration(
+                        labelText: 'Confirm Password',
+                      ),
+                      obscureText: true,
+                    ),
+                    const SizedBox(height: 16.0),
+                    ElevatedButton(
+                      onPressed: () {
+                        // Handle login or sign-up logic
+                      },
+                      child: Text(isLoginMode ? 'Login' : 'Sign Up'),
+                    ),
+                    const SizedBox(height: 16.0),
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          isLoginMode = !isLoginMode;
+                        });
+                      },
+                      child: Text(isLoginMode
+                          ? 'Need an account? Sign Up'
+                          : 'Already have an account? Login'),
+                    ),
+                    const SizedBox(height: 16.0),
+                    ElevatedButton(
+                      onPressed: () {
+                        // Handle Gmail login
+                      },
+                      child: const Text('Login with Gmail'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
+  }
+
+  Widget _buildIconWithLabel(
+      BuildContext context, String iconPath, String label, Widget page) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => page),
+        );
+      },
+      child: Column(
+        children: [
+          Image.asset(
+            iconPath,
+            height: 20,
+            width: 20,
+          ),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSpacer() {
+    return const SizedBox(width: 16.0);
   }
 }

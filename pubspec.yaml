@@ -45,6 +45,17 @@ flutter:
   assets:
     - assets/images/
     - assets/images/sites/
+    - assets/icons/zoo.png
+    - assets/icons/waterfall.png
+    - assets/icons/mountain.png
+    - assets/icons/reserves.png
+    - assets/icons/parks.png
+    - assets/icons/hotels.png
+    - assets/icons/culture.png
+    - assets/icons/attractions.png
+    - assets/icons/home.png
+    - assets/icons/transports.png
+    - assets/images/tembo.png
 
   fonts:
     - family: Canterbury
