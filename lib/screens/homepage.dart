@@ -89,7 +89,6 @@ class _HomePageState extends State<HomePage> {
               backgroundColor: Colors.green,
             ),
           );
-          // Navigate to the home page or perform further actions here
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -111,7 +110,6 @@ class _HomePageState extends State<HomePage> {
               backgroundColor: Colors.green,
             ),
           );
-          // Navigate to the home page or perform further actions here
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -129,6 +127,31 @@ class _HomePageState extends State<HomePage> {
         ),
       );
     }
+  }
+
+  Future<List<String>> _fetchPopularDestinationsImages() async {
+    final List<String> imageUrls = [];
+
+    try {
+      final List<FileObject> files = await supabase.storage
+          .from('images')
+          .list(path: 'Popular Destinations');
+
+      for (var file in files) {
+        final publicUrl = supabase.storage
+            .from('images')
+            .getPublicUrl('Popular Destinations/${file.name}');
+        imageUrls.add(publicUrl);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error fetching images: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+    return imageUrls;
   }
 
   @override
@@ -222,49 +245,48 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildPopularDestinationsCarousel() {
-    // Mock data, replace with your actual data source
-    final destinations = [
-      {
-        'title': 'Mount Kilimanjaro',
-        'imageUrl': 'https://example.com/kilimanjaro.jpg'
-      },
-      {'title': 'Zanzibar', 'imageUrl': 'https://example.com/zanzibar.jpg'},
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Popular Destinations',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        SizedBox(height: 10),
-        Container(
-          height: 200,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: destinations.length,
-            itemBuilder: (context, index) {
-              final destination = destinations[index];
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Column(
-                  children: [
-                    Image.network(
-                      destination['imageUrl']!,
-                      height: 150,
-                      width: 250,
-                      fit: BoxFit.cover,
-                    ),
-                    SizedBox(height: 5),
-                    Text(destination['title']!),
-                  ],
+    return FutureBuilder<List<String>>(
+      future: _fetchPopularDestinationsImages(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Text('No images found.');
+        } else {
+          final imageUrls = snapshot.data!;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Popular Destinations',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 10),
+              Container(
+                height: 200,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: imageUrls.length,
+                  itemBuilder: (context, index) {
+                    final imageUrl = imageUrls[index];
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Image.network(
+                        imageUrl,
+                        height: 150,
+                        width: 250,
+                        fit: BoxFit.cover,
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
-        ),
-      ],
+              ),
+            ],
+          );
+        }
+      },
     );
   }
 }
