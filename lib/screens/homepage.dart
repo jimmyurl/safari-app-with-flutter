@@ -19,7 +19,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<hotelModel.Hotel> popularDestinations = [];
+  List popularDestinationsImages = [];
   final TextEditingController _destinationController = TextEditingController();
   String selectedDestination = '';
   bool isLoginMode = true;
@@ -27,50 +27,40 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _fetchPopularDestinations();
+    _fetchPopularDestinationsImages();
   }
 
-  Future<void> _fetchPopularDestinations() async {
+  Future _fetchPopularDestinationsImages() async {
     final client = Supabase.instance.client;
-
     try {
-      final response = await client.from('hotels').select().maybeSingle();
+      // List files in the 'Popular-destinations' folder
+      final List storageResponse = await client.storage
+          .from('images')
+          .list(path: 'Popular-destinations');
 
-      if (response != null) {
-        final List<dynamic> responseData = response as List<dynamic>;
+      // Extract the URLs of the images
+      final List imageUrls =
+          await Future.wait(storageResponse.map((file) async {
+        return client.storage
+            .from('images')
+            .getPublicUrl('Popular-destinations/${file.name}');
+      }));
 
-        final List<hotelModel.Hotel> hotels =
-            responseData.map<hotelModel.Hotel>((json) {
-          return hotelModel.Hotel(
-            id: json['id'] as String,
-            title: json['title'] as String,
-            description: json['description'] as String,
-            imageUrls: List<String>.from(json['imageUrls'] as List),
-            rating: (json['rating'] as num).toDouble(),
-            location: json['location'] as String,
-            zone: json['zone'] as String,
-            hotelClass: json['hotelClass'] as String,
-            amenities: List<String>.from(json['amenities'] as List),
-            phoneNumbers: List<String>.from(json['phoneNumbers'] as List),
-            latitude: (json['latitude'] as num).toDouble(),
-            longitude: (json['longitude'] as num).toDouble(),
-          );
-        }).toList();
+      // Debugging: Log the fetched image URLs
+      print('Fetched Image URLs: $imageUrls');
 
-        setState(() {
-          popularDestinations = hotels;
-        });
-      }
+      // Update the state with the fetched image URLs
+      setState(() {
+        popularDestinationsImages = imageUrls;
+      });
     } catch (err) {
-      print('Error: $err');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error fetching destinations: $err'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
+      // Handle exception (Optional)
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error fetching images: $err'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
     }
   }
 
@@ -113,10 +103,7 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 8.0),
             const Text(
               'Popular Destinations',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16.0),
             Card(
@@ -138,18 +125,14 @@ class _HomePageState extends State<HomePage> {
                         enableInfiniteScroll: true,
                         enlargeCenterPage: true,
                       ),
-                      items: popularDestinations.map((destination) {
+                      items: popularDestinationsImages.map((imageUrl) {
                         return Container(
                           margin: const EdgeInsets.symmetric(horizontal: 8),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(8),
                             image: DecorationImage(
-                              image: NetworkImage(
-                                  destination.imageUrls.isNotEmpty
-                                      ? destination.imageUrls[0]
-                                      : 'https://example.com/placeholder.jpg'),
-                              fit: BoxFit.cover,
-                            ),
+                                image: NetworkImage(imageUrl),
+                                fit: BoxFit.cover),
                           ),
                           child: Stack(
                             children: [
@@ -164,21 +147,15 @@ class _HomePageState extends State<HomePage> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        destination.title,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      Text(
-                                        destination.location,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 14,
-                                        ),
-                                      ),
+                                      Text('Title Placeholder',
+                                          style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold)),
+                                      Text('Location Placeholder',
+                                          style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 14)),
                                     ],
                                   ),
                                 ),
@@ -204,13 +181,13 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     const Text(
                       'Search for Attractions',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 16.0),
-                    TypeAheadFormField<String>(
+                    const SizedBox(
+                      height: 16.0,
+                    ),
+                    TypeAheadFormField(
                       textFieldConfiguration: TextFieldConfiguration(
                         controller: _destinationController,
                         decoration: const InputDecoration(
@@ -218,11 +195,11 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                       suggestionsCallback: (pattern) async {
-                        return popularDestinations
-                            .where((hotel) => hotel.location
+                        return popularDestinationsImages
+                            .where((url) => url
                                 .toLowerCase()
                                 .contains(pattern.toLowerCase()))
-                            .map((hotel) => hotel.location)
+                            .map((url) => url)
                             .toList();
                       },
                       itemBuilder: (context, suggestion) {
@@ -237,7 +214,9 @@ class _HomePageState extends State<HomePage> {
                         });
                       },
                     ),
-                    const SizedBox(height: 16.0),
+                    const SizedBox(
+                      height: 16.0,
+                    ),
                     ElevatedButton(
                       onPressed: () {
                         if (selectedDestination.isNotEmpty) {
@@ -277,38 +256,47 @@ class _HomePageState extends State<HomePage> {
                     Text(
                       isLoginMode ? 'Login' : 'Sign Up',
                       style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
+                          fontSize: 20, fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 16.0),
+                    const SizedBox(
+                      height: 16.0,
+                    ),
                     TextField(
                       decoration: const InputDecoration(
                         labelText: 'Email',
                       ),
                     ),
-                    const SizedBox(height: 8.0),
+                    const SizedBox(
+                      height: 8.0,
+                    ),
                     TextField(
                       decoration: const InputDecoration(
                         labelText: 'Password',
                       ),
                       obscureText: true,
                     ),
-                    if (!isLoginMode) const SizedBox(height: 8.0),
+                    if (!isLoginMode)
+                      const SizedBox(
+                        height: 8.0,
+                      ),
                     TextField(
                       decoration: const InputDecoration(
                         labelText: 'Confirm Password',
                       ),
                       obscureText: true,
                     ),
-                    const SizedBox(height: 16.0),
+                    const SizedBox(
+                      height: 16.0,
+                    ),
                     ElevatedButton(
                       onPressed: () {
-                        // Handle login or sign-up logic
+                        // Handle login/signup logic
                       },
                       child: Text(isLoginMode ? 'Login' : 'Sign Up'),
                     ),
-                    const SizedBox(height: 16.0),
+                    const SizedBox(
+                      height: 8.0,
+                    ),
                     TextButton(
                       onPressed: () {
                         setState(() {
@@ -316,15 +304,8 @@ class _HomePageState extends State<HomePage> {
                         });
                       },
                       child: Text(isLoginMode
-                          ? 'Need an account? Sign Up'
+                          ? 'Don\'t have an account? Sign Up'
                           : 'Already have an account? Login'),
-                    ),
-                    const SizedBox(height: 16.0),
-                    ElevatedButton(
-                      onPressed: () {
-                        // Handle Gmail login
-                      },
-                      child: const Text('Login with Gmail'),
                     ),
                   ],
                 ),
@@ -342,22 +323,21 @@ class _HomePageState extends State<HomePage> {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => page),
+          MaterialPageRoute(
+            builder: (context) => page,
+          ),
         );
       },
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Image.asset(
             iconPath,
-            height: 20,
             width: 20,
+            height: 20,
           ),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 14,
-            ),
-          ),
+          const SizedBox(height: 8),
+          Text(label),
         ],
       ),
     );
