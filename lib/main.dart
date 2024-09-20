@@ -8,6 +8,7 @@ import 'package:tanzaniasafari/screens/hotels_screen.dart';
 import 'package:tanzaniasafari/screens/restaurant_screen.dart';
 import 'package:tanzaniasafari/screens/trips_screen.dart';
 import 'package:tanzaniasafari/screens/onboarding_screen.dart';
+import 'package:tanzaniasafari/screens/login_signup_page.dart'; // Import Login/Signup Page
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,11 +31,9 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Safari UI',
       theme: ThemeData(
-        // Apply global text theme with Poppins font
         textTheme: GoogleFonts.poppinsTextTheme(
           Theme.of(context).textTheme,
         ),
-        // Customize primary color, scaffold background, etc.
         primaryColor: const Color(0xFF211955),
         scaffoldBackgroundColor: const Color(0xFFF5EDDC),
         appBarTheme: AppBarTheme(
@@ -59,6 +58,8 @@ class MyApp extends StatelessWidget {
         '/activities': (context) => ActivitiesScreen(),
         '/restaurants': (context) => RestaurantsScreen(),
         '/flights': (context) => FlightsScreen(),
+        '/login': (context) =>
+            LoginSignupPage(), // Add the route to the LoginSignupPage
       },
     );
   }
@@ -89,7 +90,6 @@ class _TanzaniaSafariState extends State<_TanzaniaSafari> {
   }
 
   void _checkOnboarding() async {
-    // Simulate onboarding check
     await Future.delayed(const Duration(seconds: 3));
     if (mounted) {
       setState(() {
@@ -122,6 +122,15 @@ class _TanzaniaSafariState extends State<_TanzaniaSafari> {
                   ),
                 ],
               ),
+              actions: [
+                IconButton(
+                  icon: Icon(Icons.login),
+                  onPressed: () {
+                    Navigator.pushNamed(
+                        context, '/login'); // Navigate to the login page
+                  },
+                )
+              ],
             )
           : null,
       body: isOnBoarding ? const OnboardingScreen() : pages[bottomNavBarIndex],

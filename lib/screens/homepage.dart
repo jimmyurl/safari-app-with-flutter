@@ -19,10 +19,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List popularDestinationsImages = [];
+  List<String> popularDestinationsImages = [];
   final TextEditingController _destinationController = TextEditingController();
   String selectedDestination = '';
-  bool isLoginMode = true;
 
   @override
   void initState() {
@@ -30,31 +29,31 @@ class _HomePageState extends State<HomePage> {
     _fetchPopularDestinationsImages();
   }
 
-  Future _fetchPopularDestinationsImages() async {
+  Future<void> _fetchPopularDestinationsImages() async {
     final client = Supabase.instance.client;
+
     try {
       // List files in the 'Popular-destinations' folder
-      final List storageResponse = await client.storage
+      final List<FileObject> storageResponse = await client.storage
           .from('images')
           .list(path: 'Popular-destinations');
 
       // Extract the URLs of the images
-      final List imageUrls =
-          await Future.wait(storageResponse.map((file) async {
+      final List<String> imageUrls = storageResponse.map((file) {
         return client.storage
             .from('images')
             .getPublicUrl('Popular-destinations/${file.name}');
-      }));
+      }).toList();
 
-      // Debugging: Log the fetched image URLs
-      print('Fetched Image URLs: $imageUrls');
+      // Debugging output
+      print("Fetched image URLs: $imageUrls");
 
       // Update the state with the fetched image URLs
       setState(() {
         popularDestinationsImages = imageUrls;
       });
     } catch (err) {
-      // Handle exception (Optional)
+      // Handle exception
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error fetching images: $err'),
@@ -103,7 +102,10 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 8.0),
             const Text(
               'Popular Destinations',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 16.0),
             Card(
@@ -125,45 +127,28 @@ class _HomePageState extends State<HomePage> {
                         enableInfiniteScroll: true,
                         enlargeCenterPage: true,
                       ),
-                      items: popularDestinationsImages.map((imageUrl) {
-                        return Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 8),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                            image: DecorationImage(
-                                image: NetworkImage(imageUrl),
-                                fit: BoxFit.cover),
-                          ),
-                          child: Stack(
-                            children: [
-                              Positioned(
-                                bottom: 0,
-                                left: 0,
-                                right: 0,
-                                child: Container(
-                                  color: Colors.black.withOpacity(0.5),
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text('Title Placeholder',
-                                          style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold)),
-                                      Text('Location Placeholder',
-                                          style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 14)),
-                                    ],
+                      items: popularDestinationsImages.isNotEmpty
+                          ? popularDestinationsImages.map((imageUrl) {
+                              return Container(
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 8),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  image: DecorationImage(
+                                    image: NetworkImage(imageUrl),
+                                    fit: BoxFit.cover,
                                   ),
                                 ),
+                              );
+                            }).toList()
+                          : [
+                              Container(
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 8),
+                                child: const Center(
+                                    child: Text('No images available')),
                               ),
                             ],
-                          ),
-                        );
-                      }).toList(),
                     ),
                   ),
                 ],
@@ -181,13 +166,13 @@ class _HomePageState extends State<HomePage> {
                   children: [
                     const Text(
                       'Search for Attractions',
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    const SizedBox(
-                      height: 16.0,
-                    ),
-                    TypeAheadFormField(
+                    const SizedBox(height: 16.0),
+                    TypeAheadFormField<String>(
                       textFieldConfiguration: TextFieldConfiguration(
                         controller: _destinationController,
                         decoration: const InputDecoration(
@@ -199,7 +184,7 @@ class _HomePageState extends State<HomePage> {
                             .where((url) => url
                                 .toLowerCase()
                                 .contains(pattern.toLowerCase()))
-                            .map((url) => url)
+                            .map((url) => url) // Assuming URL as the suggestion
                             .toList();
                       },
                       itemBuilder: (context, suggestion) {
@@ -214,9 +199,7 @@ class _HomePageState extends State<HomePage> {
                         });
                       },
                     ),
-                    const SizedBox(
-                      height: 16.0,
-                    ),
+                    const SizedBox(height: 16.0),
                     ElevatedButton(
                       onPressed: () {
                         if (selectedDestination.isNotEmpty) {
@@ -244,73 +227,6 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
-            Card(
-              margin:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              elevation: 4,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      isLoginMode ? 'Login' : 'Sign Up',
-                      style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(
-                      height: 16.0,
-                    ),
-                    TextField(
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 8.0,
-                    ),
-                    TextField(
-                      decoration: const InputDecoration(
-                        labelText: 'Password',
-                      ),
-                      obscureText: true,
-                    ),
-                    if (!isLoginMode)
-                      const SizedBox(
-                        height: 8.0,
-                      ),
-                    TextField(
-                      decoration: const InputDecoration(
-                        labelText: 'Confirm Password',
-                      ),
-                      obscureText: true,
-                    ),
-                    const SizedBox(
-                      height: 16.0,
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        // Handle login/signup logic
-                      },
-                      child: Text(isLoginMode ? 'Login' : 'Sign Up'),
-                    ),
-                    const SizedBox(
-                      height: 8.0,
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          isLoginMode = !isLoginMode;
-                        });
-                      },
-                      child: Text(isLoginMode
-                          ? 'Don\'t have an account? Sign Up'
-                          : 'Already have an account? Login'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
           ],
         ),
       ),
@@ -323,9 +239,7 @@ class _HomePageState extends State<HomePage> {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => page,
-          ),
+          MaterialPageRoute(builder: (context) => page),
         );
       },
       child: Column(
