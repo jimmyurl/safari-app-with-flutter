@@ -32,7 +32,9 @@ dependencies:
   window_location_href: ^1.0.1+2
   material_floating_search_bar_2: ^0.5.0
   google_fonts: ^4.0.4
-  image_picker: ^1.1.2 
+  image_picker: ^1.1.2
+  share_plus: ^10.0.2 
+  font_awesome_flutter: ^10.7.0
      
 
 dev_dependencies:
@@ -53,6 +55,8 @@ flutter:
     - assets/icons/hotels.png
     - assets/icons/culture.png
     - assets/icons/attractions.png
+    - assets/icons/login.png
+    - assets/icons/search.png
     - assets/icons/home.png
     - assets/icons/transports.png
     - assets/images/tembo.png

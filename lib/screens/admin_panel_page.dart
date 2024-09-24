@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tanzaniasafari/screens/login_signup_page.dart';
 
 class AdminPanelPage extends StatefulWidget {
   @override

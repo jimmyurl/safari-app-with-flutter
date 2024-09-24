@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:tanzaniasafari/models/hotel_model.dart' as hotelModel;
 import 'package:tanzaniasafari/screens/HotelsDestination.dart'
     as destinationScreen;
@@ -20,8 +19,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<String> popularDestinationsImages = [];
-  final TextEditingController _destinationController = TextEditingController();
-  String selectedDestination = '';
 
   @override
   void initState() {
@@ -112,121 +109,52 @@ class _HomePageState extends State<HomePage> {
               margin:
                   const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               elevation: 4,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SizedBox(
-                    height: 200,
-                    child: CarouselSlider(
-                      options: CarouselOptions(
-                        autoPlay: true,
-                        autoPlayInterval: const Duration(seconds: 10),
-                        autoPlayAnimationDuration:
-                            const Duration(milliseconds: 800),
-                        autoPlayCurve: Curves.fastOutSlowIn,
-                        enableInfiniteScroll: true,
-                        enlargeCenterPage: true,
-                      ),
-                      items: popularDestinationsImages.isNotEmpty
-                          ? popularDestinationsImages.map((imageUrl) {
-                              return Container(
-                                margin:
-                                    const EdgeInsets.symmetric(horizontal: 8),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                  image: DecorationImage(
-                                    image: NetworkImage(imageUrl),
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              );
-                            }).toList()
-                          : [
-                              Container(
-                                margin:
-                                    const EdgeInsets.symmetric(horizontal: 8),
-                                child: const Center(
-                                    child: Text('No images available')),
-                              ),
-                            ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16.0),
-            Card(
-              margin:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              elevation: 4,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
+              child: Container(
+                height: MediaQuery.of(context).size.height *
+                    0.6, // Set height to occupy more space
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text(
-                      'Search for Attractions',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16.0),
-                    TypeAheadFormField<String>(
-                      textFieldConfiguration: TextFieldConfiguration(
-                        controller: _destinationController,
-                        decoration: const InputDecoration(
-                          hintText: 'Select Destination',
+                    Expanded(
+                      child: CarouselSlider(
+                        options: CarouselOptions(
+                          autoPlay: true,
+                          autoPlayInterval: const Duration(seconds: 10),
+                          autoPlayAnimationDuration:
+                              const Duration(milliseconds: 800),
+                          autoPlayCurve: Curves.fastOutSlowIn,
+                          enableInfiniteScroll: true,
+                          enlargeCenterPage: true,
                         ),
+                        items: popularDestinationsImages.isNotEmpty
+                            ? popularDestinationsImages.map((imageUrl) {
+                                return Container(
+                                  margin:
+                                      const EdgeInsets.symmetric(horizontal: 8),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    image: DecorationImage(
+                                      image: NetworkImage(imageUrl),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                );
+                              }).toList()
+                            : [
+                                Container(
+                                  margin:
+                                      const EdgeInsets.symmetric(horizontal: 8),
+                                  child: const Center(
+                                      child: Text('No images available')),
+                                ),
+                              ],
                       ),
-                      suggestionsCallback: (pattern) async {
-                        return popularDestinationsImages
-                            .where((url) => url
-                                .toLowerCase()
-                                .contains(pattern.toLowerCase()))
-                            .map((url) => url) // Assuming URL as the suggestion
-                            .toList();
-                      },
-                      itemBuilder: (context, suggestion) {
-                        return ListTile(
-                          title: Text(suggestion),
-                        );
-                      },
-                      onSuggestionSelected: (suggestion) {
-                        setState(() {
-                          selectedDestination = suggestion;
-                          _destinationController.text = suggestion;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16.0),
-                    ElevatedButton(
-                      onPressed: () {
-                        if (selectedDestination.isNotEmpty) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  destinationScreen.HotelsDestination(
-                                destination: selectedDestination,
-                              ),
-                            ),
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Please select a destination.'),
-                              backgroundColor: Colors.orange,
-                            ),
-                          );
-                        }
-                      },
-                      child: const Text('Search'),
                     ),
                   ],
                 ),
               ),
             ),
+            const SizedBox(height: 16.0),
           ],
         ),
       ),

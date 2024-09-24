@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'admin_panel_page.dart'; // Ensure this import is correct
 
 class LoginSignupPage extends StatefulWidget {
   @override
@@ -24,20 +25,30 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
           );
           return;
         }
-        await Supabase.instance.client.auth.signUp(
+        final response = await Supabase.instance.client.auth.signUp(
           email: email,
           password: password,
         );
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Sign Up successful!')),
-        );
+        if (response.user != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Sign Up successful!')),
+          );
+        }
       } else {
         final response = await Supabase.instance.client.auth.signInWithPassword(
           email: email,
           password: password,
         );
         if (response.user != null) {
-          Navigator.pushReplacementNamed(context, '/home');
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => AdminPanelPage()),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text('Login failed. Please check your credentials.')),
+          );
         }
       }
     } catch (error) {
@@ -126,5 +137,13 @@ class _LoginSignupPageState extends State<LoginSignupPage> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
   }
 }

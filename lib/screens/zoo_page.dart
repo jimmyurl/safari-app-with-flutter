@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:tanzaniasafari/main.dart';
 
 class ZooPage extends StatefulWidget {
   const ZooPage({Key? key}) : super(key: key);
