@@ -26,34 +26,38 @@ class _HomePageState extends State<HomePage> {
     _fetchPopularDestinationsImages();
   }
 
+  // Fetching popular destinations images from Supabase without using deprecated execute() method
   Future<void> _fetchPopularDestinationsImages() async {
     final client = Supabase.instance.client;
 
     try {
-      // List files in the 'Popular-destinations' folder
-      final List<FileObject> storageResponse = await client.storage
-          .from('images')
-          .list(path: 'Popular-destinations');
+      // Fetching data directly from the 'popular_destinations' table using select() method
+      final response = await client
+          .from('popular_destinations') // Replace with your actual table name
+          .select('image_url') // Selecting only the image_url field
+          .order('id', ascending: true) // Order results by ID, optional
+          .limit(10); // Optional: Limiting the results to 10
 
-      // Extract the URLs of the images
-      final List<String> imageUrls = storageResponse.map((file) {
-        return client.storage
-            .from('images')
-            .getPublicUrl('Popular-destinations/${file.name}');
-      }).toList();
+      if (response != null && response.isNotEmpty) {
+        final List<String> imageUrls = (response as List<dynamic>)
+            .map((destination) => destination['image_url'] as String)
+            .toList();
 
-      // Debugging output
-      print("Fetched image URLs: $imageUrls");
+        // Debugging output
+        print("Fetched image URLs from table: $imageUrls");
 
-      // Update the state with the fetched image URLs
-      setState(() {
-        popularDestinationsImages = imageUrls;
-      });
+        // Update the state to display the images
+        setState(() {
+          popularDestinationsImages = imageUrls;
+        });
+      } else {
+        throw 'No data available in the table.';
+      }
     } catch (err) {
-      // Handle exception
+      // Handle errors properly
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error fetching images: $err'),
+          content: Text('Error fetching popular destinations: $err'),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
