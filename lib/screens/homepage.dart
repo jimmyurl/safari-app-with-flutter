@@ -71,9 +71,9 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             _buildHeader(), // Header with icons
-            const SizedBox(height: 16.0),
+            const SizedBox(height: 8.0), // Reduced height for spacing
             _buildPopularDestinations(), // Carousel of popular destinations
-            const SizedBox(height: 16.0),
+            const SizedBox(height: 8.0), // Reduced height for spacing
           ],
         ),
       ),
@@ -122,10 +122,10 @@ class _HomePageState extends State<HomePage> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(height: 16.0),
+        const SizedBox(height: 8.0), // Reduced height for spacing
         Container(
           height: MediaQuery.of(context).size.height *
-              0.8, // Increased height for larger cards
+              0.85, // Significantly increased height for larger cards
           child: CarouselSlider(
             options: CarouselOptions(
               autoPlay: true,
@@ -159,7 +159,8 @@ class _HomePageState extends State<HomePage> {
           horizontal: 8.0), // Removed vertical margin to fit better
       elevation: 4,
       child: Container(
-        height: double.infinity, // Allow card to take full height
+        height: MediaQuery.of(context).size.height *
+            0.75, // Set a fixed height for each card
         child: Stack(
           // Use Stack to overlay text on top of image
           children: [
@@ -183,7 +184,7 @@ class _HomePageState extends State<HomePage> {
                   Text(
                     destination['title'] ?? 'No Title',
                     style: const TextStyle(
-                      fontSize: 18, // Reasonable font size for title
+                      fontSize: 20, // Increased font size for title
                       fontWeight: FontWeight.bold,
                       color:
                           Colors.white, // White text for contrast against image
@@ -193,7 +194,7 @@ class _HomePageState extends State<HomePage> {
                   Text(
                     destination['location'] ?? 'No Location',
                     style: const TextStyle(
-                      fontSize: 16, // Reasonable font size for location
+                      fontSize: 18, // Increased font size for location
                       color:
                           Colors.white, // White text for contrast against image
                     ),
