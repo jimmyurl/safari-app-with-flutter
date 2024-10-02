@@ -3,7 +3,6 @@ import 'package:tanzaniasafari/screens/restaurant_details_screen.dart';
 import 'package:tanzaniasafari/models/restaurant_model.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
-import 'package:appwrite/appwrite.dart';
 
 class RestaurantsScreen extends StatefulWidget {
   // final Client client; // Add the client parameter

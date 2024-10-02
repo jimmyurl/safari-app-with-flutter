@@ -19,6 +19,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<Map<String, String>> popularDestinations = [];
+  String searchQuery = '';
 
   @override
   void initState() {
@@ -62,6 +63,13 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  void _onSearchChanged(String query) {
+    setState(() {
+      searchQuery = query;
+    });
+    // Implement search functionality here, e.g., filtering locations.
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,9 +80,26 @@ class _HomePageState extends State<HomePage> {
           children: [
             _buildHeader(), // Header with icons
             const SizedBox(height: 8.0), // Reduced height for spacing
+            _buildSearchBar(), // Search bar immediately after header
+            const SizedBox(height: 16.0), // Reduced height for spacing
             _buildPopularDestinations(), // Carousel of popular destinations
-            const SizedBox(height: 8.0), // Reduced height for spacing
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: TextField(
+        onChanged: _onSearchChanged,
+        decoration: InputDecoration(
+          hintText: 'Search for attractions...',
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(30), // Rounded corners
+          ),
+          suffixIcon: Icon(Icons.search),
         ),
       ),
     );
@@ -112,41 +137,44 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildPopularDestinations() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Popular Destinations',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 8.0), // Reduced height for spacing
-        Container(
-          height: MediaQuery.of(context).size.height *
-              0.85, // Significantly increased height for larger cards
-          child: CarouselSlider(
-            options: CarouselOptions(
-              autoPlay: true,
-              autoPlayInterval: const Duration(seconds: 5),
-              autoPlayAnimationDuration: const Duration(milliseconds: 800),
-              autoPlayCurve: Curves.fastOutSlowIn,
-              enlargeCenterPage: true,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Popular Destinations',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
             ),
-            items: popularDestinations.isNotEmpty
-                ? popularDestinations.map((destination) {
-                    return _buildDestinationCard(destination);
-                  }).toList()
-                : [
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 8),
-                      child: const Center(child: Text('No images available')),
-                    ),
-                  ],
           ),
-        ),
-      ],
+          const SizedBox(height: 16.0), // Spacing between text and carousel
+          Container(
+            height: 400, // Increased height to fully utilize the space
+            child: CarouselSlider(
+              options: CarouselOptions(
+                autoPlay: true,
+                autoPlayInterval: const Duration(seconds: 5),
+                autoPlayAnimationDuration: const Duration(milliseconds: 800),
+                autoPlayCurve: Curves.fastOutSlowIn,
+                enlargeCenterPage: true,
+                height: 400, // Set the same height for the carousel
+              ),
+              items: popularDestinations.isNotEmpty
+                  ? popularDestinations.map((destination) {
+                      return _buildDestinationCard(destination);
+                    }).toList()
+                  : [
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 8),
+                        child: const Center(child: Text('No images available')),
+                      )
+                    ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -156,16 +184,19 @@ class _HomePageState extends State<HomePage> {
 
     return Card(
       margin: const EdgeInsets.symmetric(
-          horizontal: 8.0), // Removed vertical margin to fit better
+          horizontal: 8.0), // Removed vertical margin
       elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15.0), // Make the card rounded
+      ),
       child: Container(
-        height: MediaQuery.of(context).size.height *
-            0.75, // Set a fixed height for each card
+        height: 400, // Expand the card height to fit content properly
         child: Stack(
-          // Use Stack to overlay text on top of image
+          // Use Stack to overlay text on top of the image
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius:
+                  BorderRadius.circular(15.0), // Match the border radius
               child: Image.network(
                 imageUrl,
                 fit: BoxFit.cover, // Ensure the image covers the entire area
@@ -174,34 +205,42 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             Positioned(
-              // Positioning title and location at the bottom of the card
-              bottom: 10,
+              bottom: 20, // Position text above the bottom to ensure visibility
               left: 10,
               right: 10,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    destination['title'] ?? 'No Title',
-                    style: const TextStyle(
-                      fontSize: 20, // Increased font size for title
-                      fontWeight: FontWeight.bold,
-                      color:
-                          Colors.white, // White text for contrast against image
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(
+                      0.5), // Transparent background for text readability
+                  borderRadius:
+                      BorderRadius.circular(10), // Slight curve for text box
+                ),
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      destination['title'] ?? 'No Title',
+                      style: const TextStyle(
+                        fontSize: 20, // Increased font size for title
+                        fontWeight: FontWeight.bold,
+                        color: Colors
+                            .white, // White text for contrast against image
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    destination['location'] ?? 'No Location',
-                    style: const TextStyle(
-                      fontSize: 18, // Increased font size for location
-                      color:
-                          Colors.white, // White text for contrast against image
+                    const SizedBox(height: 4),
+                    Text(
+                      destination['location'] ?? 'No Location',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors
+                            .white, // White text for contrast against image
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -212,10 +251,7 @@ class _HomePageState extends State<HomePage> {
       BuildContext context, String iconPath, String label, Widget page) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => page),
-        );
+        Navigator.push(context, MaterialPageRoute(builder: (context) => page));
       },
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
