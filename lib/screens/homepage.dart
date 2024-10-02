@@ -18,43 +18,41 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<String> popularDestinationsImages = [];
+  List<Map<String, String>> popularDestinations = [];
 
   @override
   void initState() {
     super.initState();
-    _fetchPopularDestinationsImages();
+    _fetchPopularDestinations();
   }
 
-  // Fetching popular destinations images from Supabase without using deprecated execute() method
-  Future<void> _fetchPopularDestinationsImages() async {
+  Future<void> _fetchPopularDestinations() async {
     final client = Supabase.instance.client;
 
     try {
-      // Fetching data directly from the 'popular_destinations' table using select() method
       final response = await client
-          .from('popular_destinations') // Replace with your actual table name
-          .select('image_url') // Selecting only the image_url field
-          .order('id', ascending: true) // Order results by ID, optional
-          .limit(10); // Optional: Limiting the results to 10
+          .from('popular_destinations')
+          .select('image_url, title, location')
+          .order('id', ascending: true)
+          .limit(10);
 
       if (response != null && response.isNotEmpty) {
-        final List<String> imageUrls = (response as List<dynamic>)
-            .map((destination) => destination['image_url'] as String)
-            .toList();
+        final List<Map<String, String>> destinations =
+            (response as List<dynamic>).map((destination) {
+          return {
+            'image_url': destination['image_url'] as String,
+            'title': destination['title'] as String,
+            'location': destination['location'] as String,
+          };
+        }).toList();
 
-        // Debugging output
-        print("Fetched image URLs from table: $imageUrls");
-
-        // Update the state to display the images
         setState(() {
-          popularDestinationsImages = imageUrls;
+          popularDestinations = destinations;
         });
       } else {
         throw 'No data available in the table.';
       }
     } catch (err) {
-      // Handle errors properly
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error fetching popular destinations: $err'),
@@ -72,93 +70,137 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16.0),
-              child: SizedBox(
-                height: 100,
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildIconWithLabel(context, 'assets/icons/zoo.png',
-                          'Zoo', const ZooPage()),
-                      _buildSpacer(),
-                      _buildIconWithLabel(context, 'assets/icons/waterfall.png',
-                          'Waterfall', const WaterfallsPage()),
-                      _buildSpacer(),
-                      _buildIconWithLabel(context, 'assets/icons/mountain.png',
-                          'Mountains', const MountainsPage()),
-                      _buildSpacer(),
-                      _buildIconWithLabel(context, 'assets/icons/parks.png',
-                          'Parks', const ParksPage()),
-                      _buildSpacer(),
-                      _buildIconWithLabel(context, 'assets/icons/reserves.png',
-                          'Reserves', const ReservesPage()),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8.0),
-            const Text(
-              'Popular Destinations',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            _buildHeader(), // Header with icons
             const SizedBox(height: 16.0),
-            Card(
-              margin:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              elevation: 4,
-              child: Container(
-                height: MediaQuery.of(context).size.height *
-                    0.6, // Set height to occupy more space
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(
-                      child: CarouselSlider(
-                        options: CarouselOptions(
-                          autoPlay: true,
-                          autoPlayInterval: const Duration(seconds: 10),
-                          autoPlayAnimationDuration:
-                              const Duration(milliseconds: 800),
-                          autoPlayCurve: Curves.fastOutSlowIn,
-                          enableInfiniteScroll: true,
-                          enlargeCenterPage: true,
-                        ),
-                        items: popularDestinationsImages.isNotEmpty
-                            ? popularDestinationsImages.map((imageUrl) {
-                                return Container(
-                                  margin:
-                                      const EdgeInsets.symmetric(horizontal: 8),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    image: DecorationImage(
-                                      image: NetworkImage(imageUrl),
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                );
-                              }).toList()
-                            : [
-                                Container(
-                                  margin:
-                                      const EdgeInsets.symmetric(horizontal: 8),
-                                  child: const Center(
-                                      child: Text('No images available')),
-                                ),
-                              ],
-                      ),
+            _buildPopularDestinations(), // Carousel of popular destinations
+            const SizedBox(height: 16.0),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      child: SizedBox(
+        height: 100,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildIconWithLabel(
+                  context, 'assets/icons/zoo.png', 'Zoo', const ZooPage()),
+              _buildSpacer(),
+              _buildIconWithLabel(context, 'assets/icons/waterfall.png',
+                  'Waterfall', const WaterfallsPage()),
+              _buildSpacer(),
+              _buildIconWithLabel(context, 'assets/icons/mountain.png',
+                  'Mountains', const MountainsPage()),
+              _buildSpacer(),
+              _buildIconWithLabel(context, 'assets/icons/parks.png', 'Parks',
+                  const ParksPage()),
+              _buildSpacer(),
+              _buildIconWithLabel(context, 'assets/icons/reserves.png',
+                  'Reserves', const ReservesPage()),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPopularDestinations() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Popular Destinations',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 16.0),
+        Container(
+          height: MediaQuery.of(context).size.height *
+              0.8, // Increased height for larger cards
+          child: CarouselSlider(
+            options: CarouselOptions(
+              autoPlay: true,
+              autoPlayInterval: const Duration(seconds: 5),
+              autoPlayAnimationDuration: const Duration(milliseconds: 800),
+              autoPlayCurve: Curves.fastOutSlowIn,
+              enlargeCenterPage: true,
+            ),
+            items: popularDestinations.isNotEmpty
+                ? popularDestinations.map((destination) {
+                    return _buildDestinationCard(destination);
+                  }).toList()
+                : [
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 8),
+                      child: const Center(child: Text('No images available')),
                     ),
                   ],
-                ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDestinationCard(Map<String, String> destination) {
+    String imageUrl =
+        destination['image_url'] ?? 'https://via.placeholder.com/150';
+
+    return Card(
+      margin: const EdgeInsets.symmetric(
+          horizontal: 8.0), // Removed vertical margin to fit better
+      elevation: 4,
+      child: Container(
+        height: double.infinity, // Allow card to take full height
+        child: Stack(
+          // Use Stack to overlay text on top of image
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.network(
+                imageUrl,
+                fit: BoxFit.cover, // Ensure the image covers the entire area
+                height: double.infinity, // Fill the entire card height
+                width: double.infinity, // Fill the entire card width
               ),
             ),
-            const SizedBox(height: 16.0),
+            Positioned(
+              // Positioning title and location at the bottom of the card
+              bottom: 10,
+              left: 10,
+              right: 10,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    destination['title'] ?? 'No Title',
+                    style: const TextStyle(
+                      fontSize: 18, // Reasonable font size for title
+                      fontWeight: FontWeight.bold,
+                      color:
+                          Colors.white, // White text for contrast against image
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    destination['location'] ?? 'No Location',
+                    style: const TextStyle(
+                      fontSize: 16, // Reasonable font size for location
+                      color:
+                          Colors.white, // White text for contrast against image
+                    ),
+                  ),
+                ],
+              ),
+            )
           ],
         ),
       ),
@@ -177,11 +219,7 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.asset(
-            iconPath,
-            width: 20,
-            height: 20,
-          ),
+          Image.asset(iconPath, width: 20, height: 20),
           const SizedBox(height: 8),
           Text(label),
         ],

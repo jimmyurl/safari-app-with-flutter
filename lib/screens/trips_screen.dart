@@ -1,330 +1,252 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:tanzaniasafari/screens/adventure_details_screen.dart';
-import 'package:tanzaniasafari/models/adventure_model.dart'; // Import the correct Adventure class
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class TripsScreen extends StatefulWidget {
   const TripsScreen({Key? key}) : super(key: key);
-
-  static const routeName = '/trips';
 
   @override
   _TripsScreenState createState() => _TripsScreenState();
 }
 
 class _TripsScreenState extends State<TripsScreen> {
-  bool _isSearchVisible = false;
-  List<Adventure> _adventures = [];
-  List<Adventure> _filteredAdventures = [];
-  List<Adventure> _culturalExperiences = [];
-  List<Adventure> _filteredCulturalExperiences = [];
-  List<Adventure> _sightseeing = [];
-  List<Adventure> _filteredSightseeing = [];
-
-  final TextEditingController _searchController = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
+  List<Map<String, dynamic>> adventuresData = [];
+  List<Map<String, dynamic>> culturalExperiencesData = [];
+  List<Map<String, dynamic>> sightseeingData = [];
 
   @override
   void initState() {
     super.initState();
-    _fetchAdventures();
-    _fetchCulturalExperiences();
-    _fetchSightseeing();
+    _fetchAdventuresData();
+    _fetchCulturalExperiencesData();
+    _fetchSightseeingData();
   }
 
-  Future<void> _fetchAdventures() async {
+  // Fetching adventures data (image_urls, title, location) from Supabase
+  Future<void> _fetchAdventuresData() async {
     final client = Supabase.instance.client;
+
     try {
-      final data = await client.from('adventures').select();
-      if (data != null) {
+      final response = await client
+          .from('adventures')
+          .select('image_urls, title, location')
+          .order('id', ascending: true)
+          .limit(10);
+
+      if (response != null && response.isNotEmpty) {
+        final List<Map<String, dynamic>> data = (response as List<dynamic>)
+            .map((trip) => {
+                  'image_urls': trip['image_urls'] as List<dynamic>,
+                  'title': trip['title'] as String,
+                  'location': trip['location'] as String,
+                })
+            .toList();
+
         setState(() {
-          _adventures = (data as List<dynamic>)
-              .map((json) => Adventure.fromMap(json as Map<String, dynamic>))
-              .toList();
-          _filteredAdventures = _adventures;
+          adventuresData = data;
         });
       } else {
-        _showErrorSnackBar('No adventures found.');
+        throw 'No data available in the adventures table.';
       }
-    } catch (error) {
-      _showErrorSnackBar('Failed to load adventures: $error');
+    } catch (err) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error fetching adventures data: $err'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
     }
   }
 
-  Future<void> _fetchCulturalExperiences() async {
+  // Fetching cultural experiences data (image_urls, title, location) from Supabase
+  Future<void> _fetchCulturalExperiencesData() async {
     final client = Supabase.instance.client;
+
     try {
-      final data = await client.from('cultural_experiences').select();
-      if (data != null) {
+      final response = await client
+          .from('cultural_experiences')
+          .select('image_urls, title, location')
+          .order('id', ascending: true)
+          .limit(10);
+
+      if (response != null && response.isNotEmpty) {
+        final List<Map<String, dynamic>> data = (response as List<dynamic>)
+            .map((trip) => {
+                  'image_urls': trip['image_urls'] as List<dynamic>,
+                  'title': trip['title'] as String,
+                  'location': trip['location'] as String,
+                })
+            .toList();
+
         setState(() {
-          _culturalExperiences = (data as List<dynamic>)
-              .map((json) => Adventure.fromMap(json as Map<String, dynamic>))
-              .toList();
-          _filteredCulturalExperiences = _culturalExperiences;
+          culturalExperiencesData = data;
         });
       } else {
-        _showErrorSnackBar('No cultural experiences found.');
+        throw 'No data available in the cultural experiences table.';
       }
-    } catch (error) {
-      _showErrorSnackBar('Failed to load cultural experiences: $error');
+    } catch (err) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error fetching cultural experiences data: $err'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
     }
   }
 
-  Future<void> _fetchSightseeing() async {
+  // Fetching sightseeing data (image_urls, title, location) from Supabase
+  Future<void> _fetchSightseeingData() async {
     final client = Supabase.instance.client;
+
     try {
-      final data = await client.from('sightseeing').select();
-      if (data != null) {
+      final response = await client
+          .from('sightseeing')
+          .select('image_urls, title, location')
+          .order('id', ascending: true)
+          .limit(10);
+
+      if (response != null && response.isNotEmpty) {
+        final List<Map<String, dynamic>> data = (response as List<dynamic>)
+            .map((trip) => {
+                  'image_urls': trip['image_urls'] as List<dynamic>,
+                  'title': trip['title'] as String,
+                  'location': trip['location'] as String,
+                })
+            .toList();
+
         setState(() {
-          _sightseeing = (data as List<dynamic>)
-              .map((json) => Adventure.fromMap(json as Map<String, dynamic>))
-              .toList();
-          _filteredSightseeing = _sightseeing;
+          sightseeingData = data;
         });
       } else {
-        _showErrorSnackBar('No sightseeing data found.');
+        throw 'No data available in the sightseeing table.';
       }
-    } catch (error) {
-      _showErrorSnackBar('Failed to load sightseeing data: $error');
+    } catch (err) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error fetching sightseeing data: $err'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
     }
-  }
-
-  void _filterAdventures(String searchText) {
-    setState(() {
-      searchText = searchText.trim().toLowerCase();
-      if (searchText.isEmpty) {
-        _filteredAdventures = _adventures;
-        _filteredCulturalExperiences = _culturalExperiences;
-        _filteredSightseeing = _sightseeing;
-      } else {
-        _filteredAdventures = _adventures
-            .where((adventure) =>
-                adventure.title.toLowerCase().contains(searchText) ||
-                adventure.location.toLowerCase().contains(searchText))
-            .toList();
-
-        _filteredCulturalExperiences = _culturalExperiences
-            .where((experience) =>
-                experience.title.toLowerCase().contains(searchText) ||
-                experience.location.toLowerCase().contains(searchText))
-            .toList();
-
-        _filteredSightseeing = _sightseeing
-            .where((sight) =>
-                sight.title.toLowerCase().contains(searchText) ||
-                sight.location.toLowerCase().contains(searchText))
-            .toList();
-      }
-      _scrollController.animateTo(0,
-          duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
-    });
-  }
-
-  void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
-    );
-  }
-
-  void _navigateToAdventureDetails(Adventure adventure) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-          builder: (context) => AdventureDetailsScreen(adventure: adventure)),
-    );
-  }
-
-  void _toggleSearchVisibility() {
-    setState(() {
-      _isSearchVisible = !_isSearchVisible;
-      if (!_isSearchVisible) {
-        _searchController.clear();
-        _filterAdventures('');
-      }
-    });
-  }
-
-  void _scrollToTop() {
-    _scrollController.animateTo(0,
-        duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFF5EDDC),
-        title: const Text(
-          'Karibu Tanzania',
-          style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Color.fromARGB(255, 71, 62, 62)),
-        ),
-      ),
+      backgroundColor: const Color(0xFFF5EDDC),
       body: SingleChildScrollView(
-        controller: _scrollController,
+        padding: EdgeInsets.zero, // Remove padding
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            if (_isSearchVisible)
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: const InputDecoration(
-                            labelText: 'Search by title or location'),
-                        onChanged: (value) {
-                          _filterAdventures(value);
-                        },
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        _searchController.clear();
-                        _filterAdventures('');
-                      },
-                      icon: const Icon(Icons.clear),
-                    ),
-                  ],
-                ),
+            const SizedBox(height: 4.0),
+            const Text(
+              'Adventures',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
               ),
-            if (_isSearchVisible)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16.0),
-                child: ElevatedButton(
-                  onPressed: _toggleSearchVisibility,
-                  child: const Text('Cancel'),
-                ),
+            ),
+            _buildCarousel(adventuresData, 'No adventures available'),
+            const SizedBox(height: 10.0),
+            const Text(
+              'Cultural Experiences',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
               ),
-            if (_isSearchVisible) const SizedBox(height: 16),
-            _buildCarouselGrid(_filteredAdventures, 'Adventures'),
-            _buildCarouselGrid(
-                _filteredCulturalExperiences, 'Cultural Experiences'),
-            _buildCarouselGrid(_filteredSightseeing, 'Sightseeing'),
+            ),
+            _buildCarousel(
+                culturalExperiencesData, 'No cultural experiences available'),
+            const SizedBox(height: 10.0),
+            const Text(
+              'Sightseeing',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            _buildCarousel(sightseeingData, 'No sightseeing available'),
+            const SizedBox(height: 10.0),
           ],
         ),
       ),
-      floatingActionButton: Visibility(
-        visible: !_isSearchVisible,
-        child: FloatingActionButton(
-          onPressed: () {
-            _toggleSearchVisibility();
-            _scrollToTop();
-          },
-          child: const Icon(Icons.search),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 
-  Widget _buildCarouselGrid(List<Adventure> items, String categoryTitle) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Text(
-            categoryTitle,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-        ),
-        const SizedBox(height: 8.0),
-        SizedBox(
-          height: 250,
-          child: CarouselSlider(
-            options: CarouselOptions(
-              height: 250,
-              enlargeCenterPage: true,
-              aspectRatio: 16 / 9,
-              viewportFraction: 0.9,
+  // A method to build the carousel for each category
+  Widget _buildCarousel(List<Map<String, dynamic>> data, String emptyMessage) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+      elevation: 4,
+      child: Container(
+        height:
+            MediaQuery.of(context).size.height * 0.4, // Further reduced height
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: CarouselSlider(
+                options: CarouselOptions(
+                  autoPlay: true,
+                  autoPlayInterval: const Duration(seconds: 10),
+                  autoPlayAnimationDuration: const Duration(milliseconds: 800),
+                  autoPlayCurve: Curves.fastOutSlowIn,
+                  enableInfiniteScroll: true,
+                  enlargeCenterPage: true,
+                ),
+                items: data.isNotEmpty
+                    ? data.map((item) {
+                        String imageUrl = (item['image_urls'] != null &&
+                                (item['image_urls'] as List).isNotEmpty)
+                            ? item['image_urls'][0] as String
+                            : 'https://via.placeholder.com/150';
+
+                        return Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Expanded(
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.network(
+                                    imageUrl,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                item['title'] ?? 'No Title',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                item['location'] ?? 'No Location',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList()
+                    : [
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Center(child: Text(emptyMessage)),
+                        ),
+                      ],
+              ),
             ),
-            items: items.map((item) {
-              return Builder(
-                builder: (BuildContext context) {
-                  return GestureDetector(
-                    onTap: () => _navigateToAdventureDetails(item),
-                    child: Card(
-                      elevation: 4.0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            height: 150,
-                            child: ClipRRect(
-                              borderRadius: const BorderRadius.vertical(
-                                  top: Radius.circular(8.0)),
-                              child: item.imageUrls != null &&
-                                      item.imageUrls.isNotEmpty
-                                  ? Image.network(
-                                      item.imageUrls.first,
-                                      fit: BoxFit.cover,
-                                      width: double.infinity,
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                        return Container(
-                                          color: Colors.grey,
-                                          child: const Center(
-                                            child: Text(
-                                              'Failed to load image',
-                                              style: TextStyle(
-                                                  color: Colors.white),
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    )
-                                  : Container(
-                                      color: Colors.grey,
-                                      child: const Center(
-                                        child: Text(
-                                          'No Image Available',
-                                          style: TextStyle(color: Colors.white),
-                                        ),
-                                      ),
-                                    ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              item.title,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 8.0),
-                            child: Text(
-                              item.location,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              );
-            }).toList(),
-          ),
+          ],
         ),
-        const SizedBox(height: 16.0),
-      ],
+      ),
     );
   }
 }
