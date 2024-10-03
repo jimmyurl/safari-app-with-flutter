@@ -59,42 +59,40 @@ class _HotelsScreenState extends State<HotelsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5EDDC),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.zero, // Remove padding
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 20.0),
-            // Search Bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  labelText: 'Search Hotels',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                    borderSide: BorderSide(color: Colors.grey),
-                  ),
+      body: Column(
+        children: [
+          const SizedBox(height: 20.0),
+          // Search Bar
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                labelText: 'Search Hotels',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  borderSide: BorderSide(color: Colors.grey),
                 ),
-                onChanged: (value) {
-                  // Implement your search logic here
-                },
               ),
+              onChanged: (value) {
+                // Implement your search logic here
+              },
             ),
-            const SizedBox(height: 20.0),
-            const Text(
-              'Hotels',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
+          ),
+          const SizedBox(height: 20.0),
+          const Text(
+            'Hotels',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
             ),
-            _buildCarousel(hotelsData, 'No hotels available'),
-            const SizedBox(height: 10.0),
-          ],
-        ),
+          ),
+          Expanded(
+            // Use Expanded here to fill available space
+            child: _buildCarousel(hotelsData, 'No hotels available'),
+          ),
+        ],
       ),
     );
   }

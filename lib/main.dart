@@ -5,11 +5,10 @@ import 'package:tanzaniasafari/screens/activity_screen.dart';
 import 'package:tanzaniasafari/screens/flights_screen.dart';
 import 'package:tanzaniasafari/screens/homepage.dart';
 import 'package:tanzaniasafari/screens/hotels_screen.dart';
-import 'package:tanzaniasafari/screens/restaurant_screen.dart';
+import 'package:tanzaniasafari/screens/culture_screen.dart'; // Import CultureScreen
 import 'package:tanzaniasafari/screens/trips_screen.dart';
 import 'package:tanzaniasafari/screens/onboarding_screen.dart';
 import 'package:tanzaniasafari/screens/login_signup_page.dart';
-import 'package:tanzaniasafari/screens/search_screen.dart'; // Import SearchScreen
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -54,11 +53,10 @@ class MyApp extends StatelessWidget {
       home: _TanzaniaSafari(),
       routes: {
         '/home': (context) => HomePage(),
-        '/search': (context) => SearchScreen(),
         '/trips': (context) => TripsScreen(),
         '/hotels': (context) => HotelsScreen(),
+        '/culture': (context) => CultureScreen(),
         '/activities': (context) => ActivitiesScreen(),
-        '/restaurants': (context) => RestaurantsScreen(),
         '/flights': (context) => FlightsScreen(),
         '/login': (context) => LoginSignupPage(),
       },
@@ -77,10 +75,9 @@ class _TanzaniaSafariState extends State<_TanzaniaSafari> {
 
   final List<Widget> pages = [
     HomePage(),
-    Container(), // Placeholder for Search (handled with bottom sheet)
     TripsScreen(),
     HotelsScreen(),
-    RestaurantsScreen(),
+    CultureScreen(), // Updated to use CultureScreen
     FlightsScreen(),
     ActivitiesScreen(),
   ];
@@ -101,64 +98,13 @@ class _TanzaniaSafariState extends State<_TanzaniaSafari> {
   }
 
   void _onBottomNavBarTap(int index) {
-    if (index == 1) {
-      _openSearchBottomSheet(); // Open the bottom sheet for search
-    } else if (index == 6) {
+    if (index == 5) {
       Navigator.pushNamed(context, '/login'); // Navigate to login page
     } else {
       setState(() {
         bottomNavBarIndex = index;
       });
     }
-  }
-
-  void _openSearchBottomSheet() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (BuildContext context) {
-        return DraggableScrollableSheet(
-          expand: false,
-          builder: (context, scrollController) {
-            return Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(20),
-                ),
-              ),
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Search',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.close),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: SearchScreen(), // Your search screen content
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
   }
 
   @override
@@ -200,16 +146,8 @@ class _TanzaniaSafariState extends State<_TanzaniaSafari> {
                     width: 24,
                     height: 24,
                     child: Image.asset(
-                      'assets/icons/search.png',
+                      'assets/icons/attractions.png',
                     ),
-                  ),
-                  label: 'Search',
-                ),
-                BottomNavigationBarItem(
-                  icon: SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: Image.asset('assets/icons/attractions.png'),
                   ),
                   label: 'Attractions',
                 ),
