@@ -31,13 +31,29 @@ class _ZooPageState extends State<ZooPage> {
           .limit(10);
 
       if (response != null && response.isNotEmpty) {
-        final List<Map<String, dynamic>> data = (response as List<dynamic>)
-            .map((zoo) => {
-                  'image_urls': zoo['image_urls'] as List<dynamic>,
-                  'title': zoo['title'] as String,
-                  'location': zoo['location'] as String,
-                })
-            .toList();
+        final List<Map<String, dynamic>> data =
+            (response as List<dynamic>).map((zoo) {
+          // Handle the image_urls field safely
+          var imageUrls = zoo['image_urls'];
+          List<dynamic> imagesList;
+
+          if (imageUrls is String) {
+            // If it's a string, split by comma to create a list
+            imagesList = imageUrls.split(',').map((url) => url.trim()).toList();
+          } else if (imageUrls is List) {
+            // If it's already a list, just assign it
+            imagesList = imageUrls;
+          } else {
+            // Default to an empty list if the type is unexpected
+            imagesList = [];
+          }
+
+          return {
+            'image_urls': imagesList,
+            'title': zoo['title'] as String,
+            'location': zoo['location'] as String,
+          };
+        }).toList();
 
         setState(() {
           zoosData = data;
@@ -59,9 +75,26 @@ class _ZooPageState extends State<ZooPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5EDDC),
+      appBar: AppBar(
+        title: const Text('Zoos'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context); // Back navigation
+          },
+        ),
+      ),
       body: Column(
         children: [
           const SizedBox(height: 20.0),
+          const Text(
+            'Zoos',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 10.0),
           // Search Bar
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -81,15 +114,7 @@ class _ZooPageState extends State<ZooPage> {
             ),
           ),
           const SizedBox(height: 20.0),
-          const Text(
-            'Zoos',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
           Expanded(
-            // Use Expanded here to fill available space
             child: _buildCarousel(zoosData, 'No zoos available'),
           ),
         ],
