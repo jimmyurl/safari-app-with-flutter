@@ -116,7 +116,7 @@ class _HomePageState extends State<HomePage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _buildIconWithLabel(
-                  context, 'assets/icons/zoo.png', 'Zoo', const ZooPage()),
+                  context, 'assets/icons/zoo.png', 'Zoo', ZooPage()),
               _buildSpacer(),
               _buildIconWithLabel(context, 'assets/icons/waterfall.png',
                   'Waterfall', const WaterfallsPage()),
